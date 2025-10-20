@@ -1,0 +1,37 @@
+package org.com.timess.retrochat.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+/**
+ * @author 33363
+ * webSocket核心配置类
+ */
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 暴露 WebSocket 端点，支持 SockJS 回退
+        registry.addEndpoint("/chat-ws")
+                //允许跨域
+                .setAllowedOriginPatterns("*")
+                //添加认证拦截器
+//                .addInterceptors(new AuthHandshakeInterceptor())
+                .withSockJS();
+    }
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        // 启用简单内存消息代理（生产环境建议用 RabbitMQ 或 Kafka） 对应@SendTo路径
+        registry.enableSimpleBroker("/topic", "/queue");
+        // 客户端发送消息的前缀 对应 @MessageMapping 路径
+        registry.setApplicationDestinationPrefixes("/app");
+        // 点对点消息前缀（默认 /user）
+        registry.setUserDestinationPrefix("/user");
+    }
+}

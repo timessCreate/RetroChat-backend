@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.com.timess</groupId>
-    <artifactId>retrochat</artifactId>
+    <artifactId>RetroChat-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>retrochat</name>
     <description>retrochat</description>

@@ -17,7 +17,7 @@ public class CommonUtils {
      * @return
      */
     public static String getEncryptPassword(String userPassword){
-        final String SALT = "timess";
+        final String SALT = "retrochat-app";
         return DigestUtils.md5DigestAsHex(
                 (SALT + userPassword).getBytes(StandardCharsets.UTF_8));
     }

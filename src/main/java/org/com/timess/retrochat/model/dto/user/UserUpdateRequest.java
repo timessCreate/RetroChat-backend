@@ -1,0 +1,40 @@
+package org.com.timess.retrochat.model.dto.user;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
+ * 用户更新请求
+ * @author eternal
+ */
+@Data
+public class UserUpdateRequest implements Serializable {
+
+    /**
+     * id
+     */
+    private Long id;
+
+    /**
+     * 用户昵称
+     */
+    private String username;
+
+    /**
+     * 用户头像
+     */
+    private String userAvatar;
+
+    /**
+     * 简介
+     */
+    private String userProfile;
+
+    /**
+     * 用户状态
+     */
+    private int status;
+
+    private static final long serialVersionUID = 1L;
+}

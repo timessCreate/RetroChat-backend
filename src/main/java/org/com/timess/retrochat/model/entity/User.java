@@ -58,16 +58,25 @@ public class User implements Serializable {
      */
     private Integer status;
 
+    /**
+     * 最近登录时间
+     */
     private LocalDateTime lastLogin;
 
+    /**
+     * 用户创建时间
+     */
     private LocalDateTime createTime;
 
+    /**
+     * 用户更新时间
+     */
     private LocalDateTime updateTime;
 
     /**
      * 是否删除
      */
-    @Column(value = "isDelete", isLogicDelete = true)
+    @Column(value = "is_delete", isLogicDelete = true)
     private Integer isDelete;
 
 }

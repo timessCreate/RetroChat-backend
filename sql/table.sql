@@ -11,7 +11,7 @@ CREATE TABLE `user` (
                          `last_login` DATETIME,
                          `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
                          `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP,
-                         isDelete  tinyint  default 0 not null comment '是否删除'
+                         is_delete  tinyint  default 0 not null comment '是否删除'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 角色表

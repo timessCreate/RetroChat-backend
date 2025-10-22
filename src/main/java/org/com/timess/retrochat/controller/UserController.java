@@ -1,23 +1,24 @@
 package org.com.timess.retrochat.controller;
 
-import com.mybatisflex.core.paginate.Page;
-import org.apache.logging.log4j.message.ReusableMessage;
+import cn.hutool.core.util.ObjUtil;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.com.timess.retrochat.common.BaseResponse;
 import org.com.timess.retrochat.common.ResultUtils;
-import org.com.timess.retrochat.model.entity.User;
+import org.com.timess.retrochat.exception.BusinessException;
+import org.com.timess.retrochat.exception.ErrorCode;
+import org.com.timess.retrochat.exception.ThrowUtils;
+import org.com.timess.retrochat.model.dto.user.UserAddRequest;
+import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
+import org.com.timess.retrochat.model.dto.user.UserSendRegisterMailRequest;
 import org.com.timess.retrochat.service.UserService;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.com.timess.retrochat.utils.EmailApi;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.xml.transform.Result;
-import java.util.List;
 
 /**
  *  控制层。
@@ -28,72 +29,53 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
+
+    @Resource
     private UserService userService;
 
+    @Resource
+    EmailApi emailApi;
     /**
-     * 保存。
-     *
-     * @param user 
-     * @return {@code true} 保存成功，{@code false} 保存失败
+     * 用户注册
+     * @param userAddRequest 注册登录请求类
+     * @return
      */
-    @PostMapping("save")
-    public BaseResponse<Boolean> save(@RequestBody User user) {
-        return ResultUtils.success(userService.save(user));
+    @PostMapping("/register")
+    public BaseResponse<String> userRegister(@RequestBody UserAddRequest userAddRequest){
+        userService.userRegister(userAddRequest.getUsername(), userAddRequest.getPassword(),userAddRequest.getEmail(), userAddRequest.getVerifyCode());
+        return ResultUtils.success("注册成功");
     }
 
     /**
-     * 根据主键删除。
-     *
-     * @param id 主键
-     * @return {@code true} 删除成功，{@code false} 删除失败
+     * 用户登录
+     * @return
      */
-    @DeleteMapping("remove/{id}")
-    public BaseResponse<Boolean> remove(@PathVariable Long id) {
-        return ResultUtils.success(userService.removeById(id));
+    @PostMapping("/login")
+    public BaseResponse<String> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
+        String token = userService.userLogin(userLoginRequest);
+        return ResultUtils.success(token);
     }
 
     /**
-     * 根据主键更新。
-     *
-     * @param user 
-     * @return {@code true} 更新成功，{@code false} 更新失败
+     * 退出登录
+     * @param request
+     * @return
      */
-    @PutMapping("update")
-    public BaseResponse<Boolean> update(@RequestBody User user) {
-        return ResultUtils.success(userService.updateById(user));
+    @GetMapping("/logout")
+    public BaseResponse<Boolean> logout(HttpServletRequest request){
+        ThrowUtils.throwIf(request == null, ErrorCode.PARAMS_ERROR);
+        Boolean result = userService.logout(request);
+        return ResultUtils.success(result);
     }
 
-    /**
-     * 查询所有。
-     *
-     * @return 所有数据
-     */
-    @GetMapping("list")
-    public BaseResponse<List<User>> list() {
-        return ResultUtils.success(userService.list());
-    }
 
-    /**
-     * 根据主键获取。
-     *
-     * @param id 主键
-     * @return 详情
-     */
-    @GetMapping("getInfo/{id}")
-    public BaseResponse<User> getInfo(@PathVariable Long id) {
-        return ResultUtils.success(userService.getById(id));
+    @PostMapping("/verifyCode")
+    public BaseResponse<Boolean> sendVerifyMail(@RequestBody UserSendRegisterMailRequest mailRequest){
+        if(ObjUtil.isEmpty(mailRequest) || StringUtils.isEmpty(mailRequest.getEmail())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "传入参数错误");
+        }
+        boolean result = emailApi.sendGeneralEmail("retroChat注册验证码：", mailRequest.getEmail());
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "验证码发送失败");
+        return ResultUtils.success(true);
     }
-
-    /**
-     * 分页查询。
-     *
-     * @param page 分页对象
-     * @return 分页对象
-     */
-    @GetMapping("page")
-    public BaseResponse<Page<User>> page(Page<User> page) {
-        return ResultUtils.success(userService.page(page));
-    }
-
 }

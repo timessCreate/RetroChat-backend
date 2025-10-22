@@ -34,5 +34,11 @@ public interface UserService extends IService<User> {
      */
     Boolean logout(HttpServletRequest request);
 
+    /**
+     * 验证用户是否存在
+     * @param id
+     * @param username
+     * @return
+     */
     boolean existsUser(long id, String username);
 }

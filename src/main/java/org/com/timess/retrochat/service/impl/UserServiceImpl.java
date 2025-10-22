@@ -12,6 +12,7 @@ import org.com.timess.retrochat.exception.ThrowUtils;
 import org.com.timess.retrochat.mapper.UserMapper;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
 import org.com.timess.retrochat.model.entity.User;
+import org.com.timess.retrochat.service.TokenBlacklistService;
 import org.com.timess.retrochat.service.UserService;
 import org.com.timess.retrochat.utils.CommonUtils;
 import org.com.timess.retrochat.utils.EmailApi;
@@ -29,6 +30,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
 
     @Resource(name = "stringRedisTemplate")
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    TokenBlacklistService tokenBlacklistService;
 
     /**
      * 用户注册校验
@@ -88,6 +92,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
 
     @Override
     public Boolean logout(HttpServletRequest request) {
+        //将token加入黑名单
+        String authorization = request.getHeader("Authorization");
+        tokenBlacklistService.addToBlacklist(authorization);
         return true;
     }
 

@@ -11,7 +11,7 @@ import org.com.timess.retrochat.exception.ErrorCode;
 import org.com.timess.retrochat.exception.ThrowUtils;
 import org.com.timess.retrochat.mapper.UserMapper;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
-import org.com.timess.retrochat.model.entity.User;
+import org.com.timess.retrochat.model.entity.user.User;
 import org.com.timess.retrochat.service.TokenBlacklistService;
 import org.com.timess.retrochat.service.UserService;
 import org.com.timess.retrochat.utils.CommonUtils;

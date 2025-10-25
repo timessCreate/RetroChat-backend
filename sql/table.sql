@@ -80,3 +80,73 @@ CREATE TABLE `login_log` (
                               INDEX `idx_created_time` (`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 聊天室表
+CREATE TABLE chat_room (
+                           id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '聊天室ID',
+                           name VARCHAR(200) NOT NULL COMMENT '聊天室名称',
+                           description TEXT NULL COMMENT '聊天室描述',
+                           type TINYINT NOT NULL DEFAULT 1 COMMENT '聊天室类型：1-公开群聊 2-私密群聊 3-一对一私聊',
+                           owner_id BIGINT NOT NULL COMMENT '创建者用户ID',
+                           max_members INT DEFAULT 500 COMMENT '最大成员数',
+                           current_members INT DEFAULT 1 COMMENT '当前成员数',
+                           avatar_url VARCHAR(500) NULL COMMENT '聊天室头像',
+                           is_active TINYINT DEFAULT 1 COMMENT '是否活跃：0-已解散 1-活跃',
+                           last_message_id BIGINT NULL COMMENT '最后一条消息ID',
+                           last_message_content TEXT NULL COMMENT '最后一条消息内容（冗余）',
+                           last_activity_time DATETIME(3) NOT NULL COMMENT '最后活动时间',
+                           create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+                           update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+                           is_delete tinyint default 0 not null  comment '是否删除',
+
+                           INDEX idx_owner_id (owner_id),
+                           INDEX idx_type (type),
+                           INDEX idx_last_activity_time (last_activity_time),
+                           INDEX idx_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天室表';
+
+-- 聊天室成员表
+CREATE TABLE chat_room_member (
+                                  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+                                  room_id BIGINT NOT NULL COMMENT '聊天室ID',
+                                  user_id BIGINT NOT NULL COMMENT '用户ID',
+                                  user_nickname VARCHAR(100) NOT NULL COMMENT '用户在群内的昵称',
+                                  role TINYINT NOT NULL DEFAULT 1 COMMENT '成员角色：1-普通成员 2-管理员 3-群主',
+                                  join_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入时间',
+                                  last_read_message_id BIGINT NULL COMMENT '最后阅读的消息ID',
+                                  is_muted TINYINT DEFAULT 0 COMMENT '是否禁言：0-否 1-是',
+                                  mute_until DATETIME(3) NULL COMMENT '禁言截止时间',
+                                  is_delete tinyint default 0 not null  comment '是否删除',
+
+                                  UNIQUE KEY uk_room_user (room_id, user_id),
+                                  INDEX idx_user_id (user_id),
+                                  INDEX idx_room_id (room_id),
+                                  INDEX idx_role (role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天室成员表';
+
+-- 聊天消息表
+CREATE TABLE chat_message (
+                              id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '消息ID',
+                              content TEXT NOT NULL COMMENT '消息内容',
+                              sender_id BIGINT NOT NULL COMMENT '发送者用户ID',
+                              sender_name VARCHAR(100) NOT NULL COMMENT '发送者用户名（冗余存储）',
+                              message_type TINYINT NOT NULL DEFAULT 1 COMMENT '消息类型：1-群聊 2-私聊 3-系统消息',
+                              chat_room_id BIGINT NULL COMMENT '聊天室ID（群聊时使用）',
+                              receiver_id BIGINT NULL COMMENT '接收者用户ID（私聊时使用）',
+                              receiver_name VARCHAR(100) NULL COMMENT '接收者用户名（冗余存储）',
+                              timestamp DATETIME(3) NOT NULL COMMENT '消息时间戳（精确到毫秒）',
+                              message_format TINYINT DEFAULT 1 COMMENT '消息格式：1-文本 2-图片 3-文件 4-语音',
+                              file_url VARCHAR(500) NULL COMMENT '文件/图片/语音URL',
+                              file_size BIGINT NULL COMMENT '文件大小（字节）',
+                              reply_to_id BIGINT NULL COMMENT '回复的消息ID',
+                              is_read TINYINT DEFAULT 0 COMMENT '是否已读：0-未读 1-已读（私聊使用）',
+                              create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+                              update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+                              is_delete tinyint default 0 not null  comment '是否删除',
+
+                              INDEX idx_sender_id (sender_id),
+                              INDEX idx_receiver_id (receiver_id),
+                              INDEX idx_chat_room_id (chat_room_id),
+                              INDEX idx_timestamp (timestamp),
+                              INDEX idx_sender_receiver (sender_id, receiver_id),
+                              INDEX idx_room_timestamp (chat_room_id, timestamp)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天消息表';

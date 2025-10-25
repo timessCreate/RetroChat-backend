@@ -3,7 +3,7 @@ package org.com.timess.retrochat.service;
 import com.mybatisflex.core.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
-import org.com.timess.retrochat.model.entity.User;
+import org.com.timess.retrochat.model.entity.user.User;
 
 /**
  *  服务层。

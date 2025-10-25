@@ -1,4 +1,4 @@
-package org.com.timess.retrochat.controller;
+package org.com.timess.retrochat.controller.user;
 
 import cn.hutool.core.util.ObjUtil;
 import jakarta.annotation.Resource;

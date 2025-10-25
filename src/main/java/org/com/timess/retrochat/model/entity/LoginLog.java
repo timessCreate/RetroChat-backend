@@ -28,7 +28,7 @@ public class LoginLog implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Id(keyType = KeyType.Auto)
+    @Id(keyType = KeyType.Generator, value = "snowFlakeId")
     private Long id;
 
     private Long userId;

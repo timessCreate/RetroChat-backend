@@ -1,9 +1,9 @@
-package org.com.timess.retrochat.controller;
+package org.com.timess.retrochat.controller.user;
 
 import com.mybatisflex.core.paginate.Page;
 import org.com.timess.retrochat.common.BaseResponse;
 import org.com.timess.retrochat.common.ResultUtils;
-import org.com.timess.retrochat.model.entity.Role;
+import org.com.timess.retrochat.model.entity.user.Role;
 import org.com.timess.retrochat.service.RoleService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.xml.transform.Result;
 import java.util.List;
 
 /**

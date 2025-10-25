@@ -1,7 +1,7 @@
 package org.com.timess.retrochat.service;
 
 import com.mybatisflex.core.service.IService;
-import org.com.timess.retrochat.model.entity.UserRole;
+import org.com.timess.retrochat.model.entity.user.UserRole;
 
 /**
  *  服务层。

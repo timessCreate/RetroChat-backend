@@ -1,4 +1,4 @@
-package org.com.timess.retrochat.model.entity;
+package org.com.timess.retrochat.model.entity.user;
 
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.KeyType;
@@ -28,7 +28,7 @@ public class UserRole implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Id(keyType = KeyType.Auto)
+    @Id(keyType = KeyType.Generator, value = "snowFlakeId")
     private Long id;
 
     private Long userId;

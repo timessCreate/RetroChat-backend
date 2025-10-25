@@ -1,10 +1,10 @@
-package org.com.timess.retrochat.controller;
+package org.com.timess.retrochat.controller.user;
 
 import com.mybatisflex.core.paginate.Page;
 import org.com.timess.retrochat.common.BaseResponse;
 import org.com.timess.retrochat.common.ResultUtils;
-import org.com.timess.retrochat.model.entity.UserRole;
-import org.com.timess.retrochat.service.UserRoleService;
+import org.com.timess.retrochat.model.entity.user.Permission;
+import org.com.timess.retrochat.service.PermissionService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.xml.transform.Result;
 import java.util.List;
 
 /**
@@ -24,21 +23,21 @@ import java.util.List;
  * @author eternal
  */
 @RestController
-@RequestMapping("/userRole")
-public class UserRoleController {
+@RequestMapping("/permission")
+public class PermissionController {
 
     @Autowired
-    private UserRoleService userRoleService;
+    private PermissionService permissionService;
 
     /**
      * 保存。
      *
-     * @param userRole 
+     * @param permission
      * @return {@code true} 保存成功，{@code false} 保存失败
      */
     @PostMapping("save")
-    public BaseResponse<Boolean> save(@RequestBody UserRole userRole) {
-        return ResultUtils.success(userRoleService.save(userRole));
+    public BaseResponse<Boolean> save(@RequestBody Permission permission) {
+        return ResultUtils.success(permissionService.save(permission));
     }
 
     /**
@@ -49,18 +48,18 @@ public class UserRoleController {
      */
     @DeleteMapping("remove/{id}")
     public BaseResponse<Boolean> remove(@PathVariable Long id) {
-        return ResultUtils.success(userRoleService.removeById(id));
+        return ResultUtils.success(permissionService.removeById(id));
     }
 
     /**
      * 根据主键更新。
      *
-     * @param userRole 
+     * @param permission
      * @return {@code true} 更新成功，{@code false} 更新失败
      */
     @PutMapping("update")
-    public BaseResponse<Boolean> update(@RequestBody UserRole userRole) {
-        return ResultUtils.success(userRoleService.updateById(userRole));
+    public BaseResponse<Boolean> update(@RequestBody Permission permission) {
+        return ResultUtils.success(permissionService.updateById(permission));
     }
 
     /**
@@ -69,8 +68,8 @@ public class UserRoleController {
      * @return 所有数据
      */
     @GetMapping("list")
-    public BaseResponse<List<UserRole>> list() {
-        return ResultUtils.success(userRoleService.list());
+    public BaseResponse<List<Permission>> list() {
+        return ResultUtils.success( permissionService.list());
     }
 
     /**
@@ -80,8 +79,8 @@ public class UserRoleController {
      * @return 详情
      */
     @GetMapping("getInfo/{id}")
-    public BaseResponse<UserRole> getInfo(@PathVariable Long id) {
-        return ResultUtils.success(userRoleService.getById(id));
+    public BaseResponse<Permission> getInfo(@PathVariable Long id) {
+        return ResultUtils.success(permissionService.getById(id));
     }
 
     /**
@@ -91,8 +90,8 @@ public class UserRoleController {
      * @return 分页对象
      */
     @GetMapping("page")
-    public BaseResponse<Page<UserRole>> page(Page<UserRole> page) {
-        return ResultUtils.success(userRoleService.page(page));
+    public BaseResponse<Page<Permission>> page(Page<Permission> page) {
+        return ResultUtils.success(permissionService.page(page));
     }
 
 }

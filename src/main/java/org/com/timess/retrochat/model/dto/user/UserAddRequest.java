@@ -30,15 +30,5 @@ public class UserAddRequest implements Serializable {
      */
     private String verifyCode;
 
-    /**
-     * 用户头像
-     */
-    private String userAvatar;
-
-    /**
-     * 用户简介
-     */
-    private String userProfile;
-
     private static final long serialVersionUID = 1L;
 }

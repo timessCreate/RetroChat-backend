@@ -104,5 +104,4 @@ public class ChatRoom implements Serializable {
      */
     @Column(value = "is_delete", isLogicDelete = true)
     private Integer isDelete;
-
 }

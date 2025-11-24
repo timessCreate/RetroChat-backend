@@ -12,13 +12,20 @@ import org.com.timess.retrochat.exception.ThrowUtils;
 import org.com.timess.retrochat.mapper.UserMapper;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
 import org.com.timess.retrochat.model.entity.user.User;
+import org.com.timess.retrochat.model.vo.UserMessageVO;
+import org.com.timess.retrochat.model.vo.UserVO;
 import org.com.timess.retrochat.service.TokenBlacklistService;
 import org.com.timess.retrochat.service.UserService;
 import org.com.timess.retrochat.utils.CommonUtils;
 import org.com.timess.retrochat.utils.EmailApi;
 import org.com.timess.retrochat.utils.JwtUtil;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *  服务层实现。
@@ -33,6 +40,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
 
     @Resource
     TokenBlacklistService tokenBlacklistService;
+
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 用户注册校验
@@ -52,12 +62,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         QueryWrapper queryWrapper = new QueryWrapper();
         queryWrapper.eq("username", username);
         long count = this.count(queryWrapper);
-        ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "账号名已被使用");
+        ThrowUtils.throwIf(count > 0, ErrorCode.USER_NAME_ERROR, "账号名已被使用");
         //验证邮箱是否已经被注册
         queryWrapper = new QueryWrapper();
         queryWrapper.eq("email", email);
         count = this.count(queryWrapper);
-        ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "邮箱已被注册，请直接登录");
+        ThrowUtils.throwIf(count > 0, ErrorCode.EMAIL_ERROR, "邮箱已被注册，请直接登录");
         //密码加密
         String encryptPassword = CommonUtils.getEncryptPassword(password);
         //数据插入
@@ -81,11 +91,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         queryWrapper.eq("username", userLoginRequest.getUsername());
         User currentUser = this.getOne(queryWrapper);
         //判定该用户是否存在
-        ThrowUtils.throwIf(currentUser == null, ErrorCode.PARAMS_ERROR, "用户不存在");
+        ThrowUtils.throwIf(currentUser == null, ErrorCode.USER_NAME_ERROR, "用户不存在");
         //判定密码是否输入正确
         ThrowUtils.throwIf(
                 !currentUser.getPassword().equals(CommonUtils.getEncryptPassword(userLoginRequest.getPassword())),
-                ErrorCode.PARAMS_ERROR, "密码错误");
+                ErrorCode.PASSWORD_ERROR, "密码错误");
         //登录成功，生成token
         return JwtUtil.generateToken(currentUser.getUsername(), currentUser.getId());
     }
@@ -103,4 +113,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         User loginUser = this.getById(id);
         return StringUtils.equals(loginUser.getUsername(), username);
     }
+
+    /**
+     * 获取当前登录用户
+     * @param request
+     * @return
+     */
+    @Override
+    public UserVO getLoginUser(HttpServletRequest request) {
+        Long userId = Long.valueOf((String) request.getAttribute("userId"));
+        User user = this.getById(userId);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录或已注销");
+        UserVO loginUserVO = new UserVO();
+        BeanUtils.copyProperties(user, loginUserVO);
+        return loginUserVO;
+    }
+
+
 }

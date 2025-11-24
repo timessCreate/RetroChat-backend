@@ -2,7 +2,6 @@ package org.com.timess.retrochat.config;
 
 import jakarta.annotation.Resource;
 import org.com.timess.retrochat.aop.JwtInterceptor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -22,14 +21,16 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 // 拦截所有/api开头的请求
-                .addPathPatterns("/api/**")
+                .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/api/auth/login",
-                        "/api/auth/register",
+                        "/user/login",
+                        "/user/register",
+                        "/user/verifyCode",
                         "/swagger-ui/**",
                         "/v3/api-docs/**"
                 );
     }
+
     @Override
     public void addCorsMappings(CorsRegistry registry){
         registry.addMapping("/**")

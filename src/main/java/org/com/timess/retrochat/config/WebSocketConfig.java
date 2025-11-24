@@ -23,8 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 //允许跨域
                 .setAllowedOriginPatterns("*")
                 //添加认证拦截器
-                .addInterceptors(new AuthHandshakeInterceptor())
-                .withSockJS();
+                .addInterceptors(new AuthHandshakeInterceptor());
     }
 
     @Override
@@ -33,10 +32,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker("/topic", "/queue");
         // 客户端发送消息的前缀 对应 @MessageMapping 路径
         registry.setApplicationDestinationPrefixes("/app");
-        // 点对点消息前缀（默认 /user）
+        // 点对点消息前缀（默认 /user） -->
         registry.setUserDestinationPrefix("/user");
     }
-
+    
     // 配置消息缓冲区大小
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {

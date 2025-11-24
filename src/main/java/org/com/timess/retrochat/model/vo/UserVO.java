@@ -3,14 +3,13 @@ package org.com.timess.retrochat.model.vo;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
- * @author 33363
  * 返回当前登录用户信息
+ * @author eternal
  */
 @Data
-public class LoginUserVO implements Serializable {
+public class UserVO implements Serializable {
     private static final long serialVersionUID = -6878355451312782724L;
 
     /**
@@ -34,12 +33,12 @@ public class LoginUserVO implements Serializable {
     private String userProfile;
 
     /**
-     * 0--正常， 1--封禁
+     * 用户邮箱
      */
-    private Integer status;
+    private String email;
 
     /**
-     * 创建时间
+     * 用户电话
      */
-    private Date createTime;
+    private String phone;
 }

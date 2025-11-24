@@ -4,6 +4,10 @@ import com.mybatisflex.core.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
 import org.com.timess.retrochat.model.entity.user.User;
+import org.com.timess.retrochat.model.vo.UserMessageVO;
+import org.com.timess.retrochat.model.vo.UserVO;
+
+import java.util.List;
 
 /**
  *  服务层。
@@ -41,4 +45,11 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean existsUser(long id, String username);
+
+    /**
+     * 获取登录用户信息
+     * @param request
+     */
+    UserVO getLoginUser(HttpServletRequest request);
+
 }

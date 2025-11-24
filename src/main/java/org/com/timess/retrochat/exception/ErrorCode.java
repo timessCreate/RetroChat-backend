@@ -10,6 +10,11 @@ import lombok.Getter;
 public enum ErrorCode {
     SUCCESS(0, "ok"),
     PARAMS_ERROR(40000, "请求参数错误"),
+    USER_NAME_ERROR(40001, "用户名不存在"),
+    PASSWORD_ERROR(40002, "密码错误"),
+    EMAIL_ERROR(40003, "邮箱已被注册"),
+    VERIFY_CODE_ERROR(40004, "验证码错误或已过期"),
+
     NOT_LOGIN_ERROR(40100, "未登录"),
     NOT_AUTH_ERROR(40101, "无权限"),
     NOT_FOUND_ERROR(40400, "请求数据不存在"),

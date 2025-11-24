@@ -3,6 +3,7 @@ package org.com.timess.retrochat.common;
 import lombok.Data;
 import org.com.timess.retrochat.exception.ErrorCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @Data
 public class BaseResponse<T> implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 6716332470891757076L;
     /**
      * 自定义响应码

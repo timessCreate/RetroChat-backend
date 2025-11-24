@@ -1,5 +1,5 @@
 server:
-  port: 9999
+  port: 10000
   servlet:
     context-path: /retrochat
 
@@ -8,5 +8,31 @@ spring:
     name: retrochat
   profiles:
     active: local
+
+# 开启MyBatis SQL日志（推荐）
+logging:
+  level:
+    # 打印执行的SQL及参数
+    org.com.timess.retrochat.mapper: debug
+    # WebSocket 相关日志
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
+    org.springframework.messaging.simp: DEBUG
+
+    # STOMP 特定日志
+    org.springframework.messaging.simp.stomp: DEBUG
+
+    # 您的应用包日志
+    org.com.timess.retrochat: DEBUG
+    # 如果想看所有MyBatis操作
+#    org.apache.ibatis: debug
+    # 查看SQL执行详情（参数、结果集）
+    java.sql: debug
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
 
 

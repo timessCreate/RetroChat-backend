@@ -16,7 +16,7 @@ import java.util.Arrays;
 @Component
 @Slf4j
 public class LoggerInterceptor {
-    @Before("execution(public * com.timess.picturecloud.controller..*(..))")
+    @Before("execution(public * org.com.timess.retrochat.controller..*(..))")
     public void logMethodEntry(JoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String methodName = signature.getName();
@@ -28,5 +28,4 @@ public class LoggerInterceptor {
                 Arrays.toString(args));
         log.info("==================================================================================");
     }
-
 }

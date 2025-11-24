@@ -12,6 +12,8 @@ import org.com.timess.retrochat.exception.ThrowUtils;
 import org.com.timess.retrochat.model.dto.user.UserAddRequest;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
 import org.com.timess.retrochat.model.dto.user.UserSendRegisterMailRequest;
+import org.com.timess.retrochat.model.vo.UserMessageVO;
+import org.com.timess.retrochat.model.vo.UserVO;
 import org.com.timess.retrochat.service.UserService;
 import org.com.timess.retrochat.utils.EmailApi;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  *  控制层。
@@ -67,15 +71,18 @@ public class UserController {
         Boolean result = userService.logout(request);
         return ResultUtils.success(result);
     }
-
-
+    /**
+     * 发送验证码
+     * @param mailRequest
+     * @return
+     */
     @PostMapping("/verifyCode")
     public BaseResponse<Boolean> sendVerifyMail(@RequestBody UserSendRegisterMailRequest mailRequest){
         if(ObjUtil.isEmpty(mailRequest) || StringUtils.isEmpty(mailRequest.getEmail())){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "传入参数错误");
+            throw new BusinessException(ErrorCode.VERIFY_CODE_ERROR, "传入参数错误");
         }
-        boolean result = emailApi.sendGeneralEmail("retroChat注册验证码：", mailRequest.getEmail());
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "验证码发送失败");
+        boolean result = emailApi.sendGeneralEmail("retroChat注册验证码", mailRequest.getEmail());
+        ThrowUtils.throwIf(!result, ErrorCode.VERIFY_CODE_ERROR, "验证码发送失败");
         return ResultUtils.success(true);
     }
 }

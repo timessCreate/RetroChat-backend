@@ -150,3 +150,34 @@ CREATE TABLE chat_message (
                               INDEX idx_sender_receiver (sender_id, receiver_id),
                               INDEX idx_room_timestamp (chat_room_id, timestamp)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天消息表';
+
+
+
+-- 好友关系表（支持申请-同意流程、备注、拉黑等）
+CREATE TABLE friend (
+                        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+
+                        user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID（主动发起方）',
+                        friend_id BIGINT UNSIGNED NOT NULL COMMENT '好友ID（被添加方）',
+
+                        status TINYINT NOT NULL DEFAULT 0 COMMENT '关系状态：0-待确认 1-已同意 2-已拒绝 3-已拉黑',
+                        remark VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '好友备注名（仅对自己可见）',
+
+    -- 扩展字段（按需启用）
+                        group_id BIGINT UNSIGNED DEFAULT NULL COMMENT '好友分组ID（可关联 friend_group 表）',
+                        avatar VARCHAR(255) DEFAULT NULL COMMENT '自定义好友头像（覆盖原用户头像）',
+                        top_order INT NOT NULL DEFAULT 0 COMMENT '置顶排序：0-不置顶 >0-置顶（数值越小越靠前）',
+                        mute_until DATETIME DEFAULT NULL COMMENT '消息免打扰截止时间',
+
+                        created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间（申请时间）',
+                        updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最后更新时间（同意/拉黑时间）',
+
+    -- 主键 & 唯一约束（防止重复添加）
+                        PRIMARY KEY (id),
+                        UNIQUE KEY uk_user_friend (user_id, friend_id) COMMENT '用户与好友唯一关系',
+
+    -- 高性能查询索引
+                        KEY idx_user_status (user_id, status, updated_at) COMMENT '查“我的好友/待确认”',
+                        KEY idx_friend_status (friend_id, status, updated_at) COMMENT '查“谁加了我”',
+                        KEY idx_user_top (user_id, top_order DESC, updated_at DESC) COMMENT '查置顶好友列表'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='好友关系表';

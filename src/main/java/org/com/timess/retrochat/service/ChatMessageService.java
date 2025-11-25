@@ -20,7 +20,7 @@ public interface ChatMessageService extends IService<ChatMessage> {
      * @param chatMessageDTO
      * @return
      */
-    boolean savePrivateMessage(ChatMessageDTO chatMessageDTO);
+    ChatMessage savePrivateMessage(ChatMessageDTO chatMessageDTO);
 
     /**
      * 保存群聊消息

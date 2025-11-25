@@ -82,7 +82,7 @@ public class ChatMessageController {
      * 发送私聊消息
      */
     @PostMapping("/chat/private")
-    public BaseResponse<String> sendPrivateMessage(@RequestBody ChatMessageDTO messageDTO, HttpServletRequest request) {
+    public BaseResponse<ChatMessageDTO> sendPrivateMessage(@RequestBody ChatMessageDTO messageDTO, HttpServletRequest request) {
         // 从消息头中获取用户信息，避免Principal为null的问题
         String senderName = (String) request.getAttribute("username");
         Long senderId = (Long) request.getAttribute("userId");
@@ -92,17 +92,17 @@ public class ChatMessageController {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"无法获取用户信息，拒绝发送私聊消息");
         }
         // 接收者用户名
-        String receiver = String.valueOf(messageDTO.getReceiverId());
+        String receiverId = String.valueOf(messageDTO.getReceiverId());
         try {
-            log.info("🔒 用户 {} 向 {} 发送私聊消息: {}", senderName, receiver, messageDTO.getContent());
+            log.info("🔒 用户 {} 向 {} 发送私聊消息: {}", senderName, receiverId, messageDTO.getContent());
             
             // 设置发送者信息
             messageDTO.setSenderId(senderId);
             messageDTO.setSenderName(senderName);
-            
+            messageDTO.setMessageType(2);
             // 1. 保存消息内容
-            chatMessageService.savePrivateMessage(messageDTO);
-            
+            ChatMessage chatMessage = chatMessageService.savePrivateMessage(messageDTO);
+
             // 2. 构建消息对象
             Map<String, Object> message = new HashMap<>();
             message.put("sender", senderName);
@@ -112,12 +112,12 @@ public class ChatMessageController {
             
             // 3. 发送给接收者
             messagingTemplate.convertAndSendToUser(
-                    receiver,
+                    receiverId,
                     "/queue/private",
                     message
             );
             //TODO: 添加消息确认机制
-            return ResultUtils.success("success");
+            return ResultUtils.success(chatMessage.getDTO());
         } catch (Exception e) {
             log.error("发送私聊消息失败", e);
             messagingTemplate.convertAndSendToUser(

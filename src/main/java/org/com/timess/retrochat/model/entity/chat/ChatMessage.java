@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.com.timess.retrochat.model.dto.chat.ChatMessageDTO;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -114,5 +116,19 @@ public class ChatMessage implements Serializable {
      */
     @Column(value = "is_delete", isLogicDelete = true)
     private Integer isDelete;
+
+
+    public ChatMessageDTO getDTO(){
+        ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
+        BeanUtils.copyProperties(this, chatMessageDTO);
+        return chatMessageDTO;
+    }
+
+    public ChatMessageDTO getDTO(ChatMessage chatMessage){
+        ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
+        BeanUtils.copyProperties(chatMessage, chatMessageDTO);
+        return chatMessageDTO;
+    }
+
 
 }

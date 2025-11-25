@@ -13,6 +13,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessageDTO {
+
+    /**
+     * id
+     */
+    private Long id;
     /**
      * 消息内容
      */

@@ -1,183 +1,327 @@
--- 用户表
-CREATE TABLE `user` (
-                         `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-                         `username` VARCHAR(50) UNIQUE NOT NULL,
-                         `password` CHAR(60) NOT NULL COMMENT 'BCrypt加密固定60字符',
-                         `email` VARCHAR(100) UNIQUE,
-                         `phone` VARCHAR(20) UNIQUE,
-                         user_avatar    varchar(1024)  null comment '用户头像',
-                         user_profile   varchar(512)   null comment '用户简介',
-                         `status` TINYINT DEFAULT 1 COMMENT '1-正常 0-禁用',
-                         `last_login` DATETIME,
-                         `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                         `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP,
-                         is_delete  tinyint  default 0 not null comment '是否删除'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 角色表
-CREATE TABLE `role` (
-                         `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-                         `name` VARCHAR(50) UNIQUE NOT NULL COMMENT '角色名称',
-                         `code` VARCHAR(50) UNIQUE NOT NULL COMMENT '角色编码(ROLE_ADMIN)',
-                         `description` VARCHAR(200) COMMENT '角色描述',
-                         `status` TINYINT DEFAULT 1 COMMENT '1-启用 0-禁用',
-                         `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                         `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 权限表
-CREATE TABLE `permission` (
-                               `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-                               `name` VARCHAR(50) NOT NULL COMMENT '权限名称',
-                               `code` VARCHAR(100) UNIQUE NOT NULL COMMENT '权限标识符(system:user:create)',
-                               `type` TINYINT NOT NULL COMMENT '1-菜单 2-按钮 3-API',
-                               `path` VARCHAR(200) COMMENT '前端路由路径',
-                               `component` VARCHAR(100) COMMENT '前端组件',
-                               `icon` VARCHAR(50) COMMENT '图标',
-                               `parent_id` BIGINT DEFAULT 0 COMMENT '父权限ID',
-                               `order_num` INT DEFAULT 0 COMMENT '排序号',
-                               `status` TINYINT DEFAULT 1 COMMENT '1-启用 0-禁用',
-                               `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                               `update_time` DATETIME ON UPDATE CURRENT_TIMESTAMP,
-                               INDEX `idx_parent_id` (`parent_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 用户角色关联表
-CREATE TABLE `user_role` (
-                              `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-                              `user_id` BIGINT NOT NULL,
-                              `role_id` BIGINT NOT NULL,
-                              `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                              UNIQUE KEY `uk_user_role` (`user_id`, `role_id`),
-                              FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-                              FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 角色权限关联表
-CREATE TABLE `role_permissions` (
-                                    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                    `role_id` BIGINT NOT NULL,
-                                    `permission_id` BIGINT NOT NULL,
-                                    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                    UNIQUE KEY `uk_role_permission` (`role_id`, `permission_id`),
-                                    FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE,
-                                    FOREIGN KEY (`permission_id`) REFERENCES `permission` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
--- 登录日志表
-CREATE TABLE `login_log` (
-                              `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-                              `user_id` BIGINT,
-                              `ip` VARCHAR(45) COMMENT 'IPv4/IPv6地址',
-                              `device` VARCHAR(200) COMMENT '设备信息',
-                              `os` VARCHAR(50) COMMENT '操作系统',
-                              `browser` VARCHAR(50) COMMENT '浏览器类型',
-                              `status` TINYINT COMMENT '1-成功 0-失败',
-                              `location` VARCHAR(100) COMMENT 'IP地理位置',
-                              `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                              INDEX `idx_user_id` (`user_id`),
-                              INDEX `idx_created_time` (`created_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 聊天室表
-CREATE TABLE chat_room (
-                           id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '聊天室ID',
-                           name VARCHAR(200) NOT NULL COMMENT '聊天室名称',
-                           description TEXT NULL COMMENT '聊天室描述',
-                           type TINYINT NOT NULL DEFAULT 1 COMMENT '聊天室类型：1-公开群聊 2-私密群聊 3-一对一私聊',
-                           owner_id BIGINT NOT NULL COMMENT '创建者用户ID',
-                           max_members INT DEFAULT 500 COMMENT '最大成员数',
-                           current_members INT DEFAULT 1 COMMENT '当前成员数',
-                           avatar_url VARCHAR(500) NULL COMMENT '聊天室头像',
-                           is_active TINYINT DEFAULT 1 COMMENT '是否活跃：0-已解散 1-活跃',
-                           last_message_id BIGINT NULL COMMENT '最后一条消息ID',
-                           last_message_content TEXT NULL COMMENT '最后一条消息内容（冗余）',
-                           last_activity_time DATETIME(3) NOT NULL COMMENT '最后活动时间',
-                           create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
-                           update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-                           is_delete tinyint default 0 not null  comment '是否删除',
-
-                           INDEX idx_owner_id (owner_id),
-                           INDEX idx_type (type),
-                           INDEX idx_last_activity_time (last_activity_time),
-                           INDEX idx_is_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天室表';
-
--- 聊天室成员表
-CREATE TABLE chat_room_member (
-                                  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-                                  room_id BIGINT NOT NULL COMMENT '聊天室ID',
-                                  user_id BIGINT NOT NULL COMMENT '用户ID',
-                                  user_nickname VARCHAR(100) NOT NULL COMMENT '用户在群内的昵称',
-                                  role TINYINT NOT NULL DEFAULT 1 COMMENT '成员角色：1-普通成员 2-管理员 3-群主',
-                                  join_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入时间',
-                                  last_read_message_id BIGINT NULL COMMENT '最后阅读的消息ID',
-                                  is_muted TINYINT DEFAULT 0 COMMENT '是否禁言：0-否 1-是',
-                                  mute_until DATETIME(3) NULL COMMENT '禁言截止时间',
-                                  is_delete tinyint default 0 not null  comment '是否删除',
-
-                                  UNIQUE KEY uk_room_user (room_id, user_id),
-                                  INDEX idx_user_id (user_id),
-                                  INDEX idx_room_id (room_id),
-                                  INDEX idx_role (role)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天室成员表';
-
--- 聊天消息表
-CREATE TABLE chat_message (
-                              id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '消息ID',
-                              content TEXT NOT NULL COMMENT '消息内容',
-                              sender_id BIGINT NOT NULL COMMENT '发送者用户ID',
-                              sender_name VARCHAR(100) NOT NULL COMMENT '发送者用户名（冗余存储）',
-                              message_type TINYINT NOT NULL DEFAULT 1 COMMENT '消息类型：1-群聊 2-私聊 3-系统消息',
-                              chat_room_id BIGINT NULL COMMENT '聊天室ID（群聊时使用）',
-                              receiver_id BIGINT NULL COMMENT '接收者用户ID（私聊时使用）',
-                              receiver_name VARCHAR(100) NULL COMMENT '接收者用户名（冗余存储）',
-                              timestamp DATETIME(3) NOT NULL COMMENT '消息时间戳（精确到毫秒）',
-                              message_format TINYINT DEFAULT 1 COMMENT '消息格式：1-文本 2-图片 3-文件 4-语音',
-                              file_url VARCHAR(500) NULL COMMENT '文件/图片/语音URL',
-                              file_size BIGINT NULL COMMENT '文件大小（字节）',
-                              reply_to_id BIGINT NULL COMMENT '回复的消息ID',
-                              is_read TINYINT DEFAULT 0 COMMENT '是否已读：0-未读 1-已读（私聊使用）',
-                              create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
-                              update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-                              is_delete tinyint default 0 not null  comment '是否删除',
-
-                              INDEX idx_sender_id (sender_id),
-                              INDEX idx_receiver_id (receiver_id),
-                              INDEX idx_chat_room_id (chat_room_id),
-                              INDEX idx_timestamp (timestamp),
-                              INDEX idx_sender_receiver (sender_id, receiver_id),
-                              INDEX idx_room_timestamp (chat_room_id, timestamp)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天消息表';
+# create schema `retrochat-database`;
+use `retrochat-database`;
 
 
 
--- 好友关系表（支持申请-同意流程、备注、拉黑等）
-CREATE TABLE friend (
-                        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
 
-                        user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID（主动发起方）',
-                        friend_id BIGINT UNSIGNED NOT NULL COMMENT '好友ID（被添加方）',
+create table user
+(
+    id           bigint auto_increment
+        primary key,
+    username     varchar(50)                        not null,
+    password     char(60)                           not null comment 'BCrypt加密固定60字符',
+    email        varchar(100)                       null,
+    phone        varchar(20)                        null,
+    user_avatar  varchar(1024)                      null comment '用户头像',
+    user_profile varchar(512)                       null comment '用户简介',
+    status       tinyint  default 1                 null comment '1-正常 0-禁用',
+    last_login   datetime                           null,
+    create_time  datetime default CURRENT_TIMESTAMP null,
+    update_time  datetime                           null on update CURRENT_TIMESTAMP,
+    is_delete    tinyint  default 0                 not null comment '是否删除',
+    constraint email
+        unique (email),
+    constraint phone
+        unique (phone),
+    constraint username
+        unique (username)
+)
+    collate = utf8mb4_unicode_ci;
 
-                        status TINYINT NOT NULL DEFAULT 0 COMMENT '关系状态：0-待确认 1-已同意 2-已拒绝 3-已拉黑',
-                        remark VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '好友备注名（仅对自己可见）',
+INSERT INTO `retrochat-database`.user (id, username, password, email, phone, user_avatar, user_profile, status, last_login, create_time, update_time, is_delete) VALUES (1, 'bot', 'a23b47ea6692645da1d27c87a6bed5ba', '3336314279@qq.com', null, null, null, 1, null, '2025-10-22 23:18:43', null, 0);
+INSERT INTO `retrochat-database`.user (id, username, password, email, phone, user_avatar, user_profile, status, last_login, create_time, update_time, is_delete) VALUES (2, 'Andy', '32edc06ad906c63147d57c5710c0a93f', '626614039@qq.com', null, null, null, 1, null, '2025-10-24 22:29:58', null, 0);
+INSERT INTO `retrochat-database`.user (id, username, password, email, phone, user_avatar, user_profile, status, last_login, create_time, update_time, is_delete) VALUES (3, 'timess', 'a23b47ea6692645da1d27c87a6bed5ba', 'xing3336314279@163.com', null, null, null, 1, null, '2025-10-25 21:31:50', null, 0);
 
-    -- 扩展字段（按需启用）
-                        group_id BIGINT UNSIGNED DEFAULT NULL COMMENT '好友分组ID（可关联 friend_group 表）',
-                        avatar VARCHAR(255) DEFAULT NULL COMMENT '自定义好友头像（覆盖原用户头像）',
-                        top_order INT NOT NULL DEFAULT 0 COMMENT '置顶排序：0-不置顶 >0-置顶（数值越小越靠前）',
-                        mute_until DATETIME DEFAULT NULL COMMENT '消息免打扰截止时间',
+create table role
+(
+    id          bigint auto_increment
+        primary key,
+    name        varchar(50)                        not null comment '角色名称',
+    code        varchar(50)                        not null comment '角色编码(ROLE_ADMIN)',
+    description varchar(200)                       null comment '角色描述',
+    status      tinyint  default 1                 null comment '1-启用 0-禁用',
+    create_time datetime default CURRENT_TIMESTAMP null,
+    update_time datetime                           null on update CURRENT_TIMESTAMP,
+    constraint code
+        unique (code),
+    constraint name
+        unique (name)
+)
+    collate = utf8mb4_unicode_ci;
 
-                        created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间（申请时间）',
-                        updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最后更新时间（同意/拉黑时间）',
 
-    -- 主键 & 唯一约束（防止重复添加）
-                        PRIMARY KEY (id),
-                        UNIQUE KEY uk_user_friend (user_id, friend_id) COMMENT '用户与好友唯一关系',
 
-    -- 高性能查询索引
-                        KEY idx_user_status (user_id, status, updated_at) COMMENT '查“我的好友/待确认”',
-                        KEY idx_friend_status (friend_id, status, updated_at) COMMENT '查“谁加了我”',
-                        KEY idx_user_top (user_id, top_order DESC, updated_at DESC) COMMENT '查置顶好友列表'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='好友关系表';
+create table permission
+(
+    id          bigint auto_increment
+        primary key,
+    name        varchar(50)                        not null comment '权限名称',
+    code        varchar(100)                       not null comment '权限标识符(system:user:create)',
+    type        tinyint                            not null comment '1-菜单 2-按钮 3-API',
+    path        varchar(200)                       null comment '前端路由路径',
+    component   varchar(100)                       null comment '前端组件',
+    icon        varchar(50)                        null comment '图标',
+    parent_id   bigint   default 0                 null comment '父权限ID',
+    order_num   int      default 0                 null comment '排序号',
+    status      tinyint  default 1                 null comment '1-启用 0-禁用',
+    create_time datetime default CURRENT_TIMESTAMP null,
+    update_time datetime                           null on update CURRENT_TIMESTAMP,
+    constraint code
+        unique (code)
+)
+    collate = utf8mb4_unicode_ci;
+
+create index idx_parent_id
+    on permission (parent_id);
+
+
+create table role_permissions
+(
+    id            bigint auto_increment
+        primary key,
+    role_id       bigint                             not null,
+    permission_id bigint                             not null,
+    create_time   datetime default CURRENT_TIMESTAMP null,
+    constraint uk_role_permission
+        unique (role_id, permission_id),
+    constraint role_permissions_ibfk_1
+        foreign key (role_id) references role (id)
+            on delete cascade,
+    constraint role_permissions_ibfk_2
+        foreign key (permission_id) references permission (id)
+            on delete cascade
+)
+    collate = utf8mb4_unicode_ci;
+
+create index permission_id
+    on role_permissions (permission_id);
+
+
+
+
+
+create table chat_room
+(
+    id                   bigint auto_increment comment '聊天室ID'
+        primary key,
+    name                 varchar(200)                             not null comment '聊天室名称',
+    description          text                                     null comment '聊天室描述',
+    type                 tinyint     default 0                    not null comment '聊天室类型：1-公开群聊 2-私密群聊 3-一对一私聊',
+    owner_id             bigint                                   not null comment '创建者用户ID',
+    max_members          int         default 500                  null comment '最大成员数',
+    current_members      int         default 1                    null comment '当前成员数',
+    avatar_url           varchar(500)                             null comment '聊天室头像',
+    is_active            tinyint     default 1                    null comment '是否活跃：0-已解散 1-活跃',
+    last_message_id      bigint                                   null comment '最后一条消息ID',
+    last_message_content text                                     null comment '最后一条消息内容（冗余）',
+    last_activity_time   datetime(3)                              not null comment '最后活动时间',
+    create_time          datetime(3) default CURRENT_TIMESTAMP(3) not null comment '创建时间',
+    update_time          datetime(3) default CURRENT_TIMESTAMP(3) not null on update CURRENT_TIMESTAMP(3) comment '更新时间',
+    is_delete            tinyint     default 0                    not null comment '是否删除'
+)
+    comment '聊天室表' collate = utf8mb4_unicode_ci;
+
+create index idx_is_active
+    on chat_room (is_active);
+
+create index idx_last_activity_time
+    on chat_room (last_activity_time);
+
+create index idx_owner_id
+    on chat_room (owner_id);
+
+create index idx_type
+    on chat_room (type);
+
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496220672290816, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887878308982784, '111111', '2025-11-21 23:14:12.342', '2025-11-21 23:14:12.336', '2025-11-21 23:14:12.343', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496221343379456, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887878984265728, '111111', '2025-11-21 23:14:12.503', '2025-11-21 23:14:12.496', '2025-11-21 23:14:12.505', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496221964136448, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887879605022720, '111111', '2025-11-21 23:14:12.652', '2025-11-21 23:14:12.645', '2025-11-21 23:14:12.654', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496222714916864, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887880355803136, '111111', '2025-11-21 23:14:12.830', '2025-11-21 23:14:12.823', '2025-11-21 23:14:12.831', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496223406977024, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887881047863296, '111111', '2025-11-21 23:14:12.996', '2025-11-21 23:14:12.989', '2025-11-21 23:14:12.997', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496224111620096, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887881752506368, '111111', '2025-11-21 23:14:13.163', '2025-11-21 23:14:13.156', '2025-11-21 23:14:13.163', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496224828846080, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887882469732352, '111111', '2025-11-21 23:14:13.334', '2025-11-21 23:14:13.327', '2025-11-21 23:14:13.335', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496225525100544, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887883161792512, '111111', '2025-11-21 23:14:13.502', '2025-11-21 23:14:13.493', '2025-11-21 23:14:13.503', 0);
+INSERT INTO `retrochat-database`.chat_room (id, name, description, type, owner_id, max_members, current_members, avatar_url, is_active, last_message_id, last_message_content, last_activity_time, create_time, update_time, is_delete) VALUES (349496226212966400, 'chatRoom_2_1', null, 3, 2, 2, 2, null, 1, 1991887883853852672, '111111', '2025-11-21 23:14:13.664', '2025-11-21 23:14:13.657', '2025-11-21 23:14:13.665', 0);
+
+
+create table chat_room_member
+(
+    id                   bigint auto_increment comment '主键ID'
+        primary key,
+    room_id              bigint                                   not null comment '聊天室ID',
+    user_id              bigint                                   not null comment '用户ID',
+    user_nickname        varchar(100)                             not null comment '用户在群内的昵称',
+    role                 tinyint     default 1                    not null comment '成员角色：1-普通成员 2-管理员 3-群主',
+    join_time            datetime(3) default CURRENT_TIMESTAMP(3) not null comment '加入时间',
+    last_read_message_id bigint                                   null comment '最后阅读的消息ID',
+    is_muted             tinyint     default 0                    null comment '是否禁言：0-否 1-是',
+    mute_until           datetime(3)                              null comment '禁言截止时间',
+    is_delete            tinyint     default 0                    not null comment '是否删除',
+    constraint uk_room_user
+        unique (room_id, user_id)
+)
+    comment '聊天室成员表' collate = utf8mb4_unicode_ci;
+
+create index idx_role
+    on chat_room_member (role);
+
+create index idx_room_id
+    on chat_room_member (room_id);
+
+create index idx_user_id
+    on chat_room_member (user_id);
+
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496220680679424, 349496220672290816, 2, 'Andy', 3, '2025-11-21 23:14:12.337', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496220693262336, 349496220672290816, 1, 'bot', 3, '2025-11-21 23:14:12.340', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496221355962368, 349496221343379456, 2, 'Andy', 3, '2025-11-21 23:14:12.497', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496221368545280, 349496221343379456, 1, 'bot', 3, '2025-11-21 23:14:12.500', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496221980913664, 349496221964136448, 2, 'Andy', 3, '2025-11-21 23:14:12.645', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496221993496576, 349496221964136448, 1, 'bot', 3, '2025-11-21 23:14:12.649', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496222723305472, 349496222714916864, 2, 'Andy', 3, '2025-11-21 23:14:12.824', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496222735888384, 349496222714916864, 1, 'bot', 3, '2025-11-21 23:14:12.827', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496223419559936, 349496223406977024, 2, 'Andy', 3, '2025-11-21 23:14:12.990', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496223432142848, 349496223406977024, 1, 'bot', 3, '2025-11-21 23:14:12.993', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496224120008704, 349496224111620096, 2, 'Andy', 3, '2025-11-21 23:14:13.157', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496224132591616, 349496224111620096, 1, 'bot', 3, '2025-11-21 23:14:13.159', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496224837234688, 349496224828846080, 2, 'Andy', 3, '2025-11-21 23:14:13.328', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496224849817600, 349496224828846080, 1, 'bot', 3, '2025-11-21 23:14:13.330', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496225537683456, 349496225525100544, 2, 'Andy', 3, '2025-11-21 23:14:13.494', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496225554460672, 349496225525100544, 1, 'bot', 3, '2025-11-21 23:14:13.499', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496226225549312, 349496226212966400, 2, 'Andy', 3, '2025-11-21 23:14:13.658', null, 0, null, 0);
+INSERT INTO `retrochat-database`.chat_room_member (id, room_id, user_id, user_nickname, role, join_time, last_read_message_id, is_muted, mute_until, is_delete) VALUES (349496226238132224, 349496226212966400, 1, 'bot', 3, '2025-11-21 23:14:13.661', null, 0, null, 0);
+
+
+
+create table chat_message
+(
+    id             bigint auto_increment comment '消息ID'
+        primary key,
+    content        text                                     not null comment '消息内容',
+    sender_id      bigint                                   not null comment '发送者用户ID',
+    sender_name    varchar(100)                             not null comment '发送者用户名（冗余存储）',
+    message_type   tinyint     default 1                    not null comment '消息类型：1-群聊 2-私聊 3-系统消息',
+    chat_room_id   bigint                                   null comment '聊天室ID（群聊时使用）',
+    receiver_id    bigint                                   null comment '接收者用户ID（私聊时使用）',
+    receiver_name  varchar(100)                             null comment '接收者用户名（冗余存储）',
+    timestamp      datetime(3)                              not null comment '消息时间戳（精确到毫秒）',
+    message_format tinyint     default 1                    null comment '消息格式：1-文本 2-图片 3-文件 4-语音',
+    file_url       varchar(500)                             null comment '文件/图片/语音URL',
+    file_size      bigint                                   null comment '文件大小（字节）',
+    reply_to_id    bigint                                   null comment '回复的消息ID',
+    is_read        tinyint     default 0                    null comment '是否已读：0-未读 1-已读（私聊使用）',
+    create_time    datetime(3) default CURRENT_TIMESTAMP(3) not null comment '创建时间',
+    update_time    datetime(3) default CURRENT_TIMESTAMP(3) not null on update CURRENT_TIMESTAMP(3) comment '更新时间',
+    is_delete      tinyint     default 0                    not null comment '是否删除'
+)
+    comment '聊天消息表' collate = utf8mb4_unicode_ci;
+
+create index idx_chat_room_id
+    on chat_message (chat_room_id);
+
+create index idx_receiver_id
+    on chat_message (receiver_id);
+
+create index idx_room_timestamp
+    on chat_message (chat_room_id, timestamp);
+
+create index idx_sender_id
+    on chat_message (sender_id);
+
+create index idx_sender_receiver
+    on chat_message (sender_id, receiver_id);
+
+create index idx_timestamp
+    on chat_message (timestamp);
+
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887878308982784, '111111', 2, 'Andy', 1, 349496220672290816, 1, null, '2025-11-21 23:14:12.334', 1, null, null, null, 0, '2025-11-21 23:14:12.342', '2025-11-21 23:14:12.342', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887878984265728, '111111', 2, 'Andy', 1, 349496221343379456, 1, null, '2025-11-21 23:14:12.494', 1, null, null, null, 0, '2025-11-21 23:14:12.503', '2025-11-21 23:14:12.503', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887879605022720, '111111', 2, 'Andy', 1, 349496221964136448, 1, null, '2025-11-21 23:14:12.643', 1, null, null, null, 0, '2025-11-21 23:14:12.652', '2025-11-21 23:14:12.652', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887880355803136, '111111', 2, 'Andy', 1, 349496222714916864, 1, null, '2025-11-21 23:14:12.822', 1, null, null, null, 0, '2025-11-21 23:14:12.829', '2025-11-21 23:14:12.829', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887881047863296, '111111', 2, 'Andy', 1, 349496223406977024, 1, null, '2025-11-21 23:14:12.986', 1, null, null, null, 0, '2025-11-21 23:14:12.996', '2025-11-21 23:14:12.996', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887881752506368, '111111', 2, 'Andy', 1, 349496224111620096, 1, null, '2025-11-21 23:14:13.154', 1, null, null, null, 0, '2025-11-21 23:14:13.162', '2025-11-21 23:14:13.162', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887882469732352, '111111', 2, 'Andy', 1, 349496224828846080, 1, null, '2025-11-21 23:14:13.325', 1, null, null, null, 0, '2025-11-21 23:14:13.334', '2025-11-21 23:14:13.334', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887883161792512, '111111', 2, 'Andy', 1, 349496225525100544, 1, null, '2025-11-21 23:14:13.491', 1, null, null, null, 0, '2025-11-21 23:14:13.501', '2025-11-21 23:14:13.501', 0);
+INSERT INTO `retrochat-database`.chat_message (id, content, sender_id, sender_name, message_type, chat_room_id, receiver_id, receiver_name, timestamp, message_format, file_url, file_size, reply_to_id, is_read, create_time, update_time, is_delete) VALUES (1991887883853852672, '111111', 2, 'Andy', 1, 349496226212966400, 1, null, '2025-11-21 23:14:13.655', 1, null, null, null, 0, '2025-11-21 23:14:13.663', '2025-11-21 23:14:13.663', 0);
+
+
+create table friend
+(
+    id         bigint unsigned auto_increment comment '主键ID'
+        primary key,
+    user_id    bigint unsigned                          not null comment '用户ID（主动发起方）',
+    friend_id  bigint unsigned                          not null comment '好友ID（被添加方）',
+    status     tinyint     default 0                    not null comment '关系状态：0-待确认 1-已同意 2-已拒绝 3-已拉黑',
+    remark     varchar(50) default ''                   null comment '好友备注名（仅对自己可见）',
+    group_id   bigint unsigned                          null comment '好友分组ID（可关联 friend_group 表）',
+    avatar     varchar(255)                             null comment '自定义好友头像（覆盖原用户头像）',
+    top_order  int         default 0                    not null comment '置顶排序：0-不置顶 >0-置顶（数值越小越靠前）',
+    mute_until datetime                                 null comment '消息免打扰截止时间',
+    created_at datetime(3) default CURRENT_TIMESTAMP(3) not null comment '创建时间（申请时间）',
+    updated_at datetime(3) default CURRENT_TIMESTAMP(3) not null on update CURRENT_TIMESTAMP(3) comment '最后更新时间（同意/拉黑时间）',
+    constraint uk_user_friend
+        unique (user_id, friend_id) comment '用户与好友唯一关系'
+)
+    comment '好友关系表' collate = utf8mb4_unicode_ci;
+
+create index idx_friend_status
+    on friend (friend_id, status, updated_at)
+    comment '查“谁加了我”';
+
+create index idx_user_status
+    on friend (user_id, status, updated_at)
+    comment '查“我的好友/待确认”';
+
+create index idx_user_top
+    on friend (user_id asc, top_order desc, updated_at desc)
+    comment '查置顶好友列表';
+
+INSERT INTO `retrochat-database`.friend (id, user_id, friend_id, status, remark, group_id, avatar, top_order, mute_until, created_at, updated_at) VALUES (1, 2, 3, 1, '后端同事-timess', null, null, 1, null, '2025-11-17 22:30:28.819', '2025-11-17 22:30:28.819');
+INSERT INTO `retrochat-database`.friend (id, user_id, friend_id, status, remark, group_id, avatar, top_order, mute_until, created_at, updated_at) VALUES (2, 3, 2, 1, '前端同事-Andy', null, null, 0, null, '2025-11-17 22:30:28.819', '2025-11-17 22:30:28.819');
+INSERT INTO `retrochat-database`.friend (id, user_id, friend_id, status, remark, group_id, avatar, top_order, mute_until, created_at, updated_at) VALUES (3, 2, 1, 1, '系统助手', null, null, 2, null, '2025-11-17 22:30:28.819', '2025-11-17 22:30:28.819');
+INSERT INTO `retrochat-database`.friend (id, user_id, friend_id, status, remark, group_id, avatar, top_order, mute_until, created_at, updated_at) VALUES (4, 1, 2, 1, '用户-Andy', null, null, 0, null, '2025-11-17 22:30:28.819', '2025-11-17 22:30:28.819');
+INSERT INTO `retrochat-database`.friend (id, user_id, friend_id, status, remark, group_id, avatar, top_order, mute_until, created_at, updated_at) VALUES (5, 3, 1, 1, '系统助手', null, null, 2, null, '2025-11-17 22:30:28.819', '2025-11-17 22:30:28.819');
+INSERT INTO `retrochat-database`.friend (id, user_id, friend_id, status, remark, group_id, avatar, top_order, mute_until, created_at, updated_at) VALUES (6, 1, 3, 1, '用户-timess', null, null, 0, null, '2025-11-17 22:30:28.819', '2025-11-17 22:30:28.819');
+
+
+create table login_log
+(
+    id           bigint auto_increment
+        primary key,
+    user_id      bigint                             null,
+    ip           varchar(45)                        null comment 'IPv4/IPv6地址',
+    device       varchar(200)                       null comment '设备信息',
+    os           varchar(50)                        null comment '操作系统',
+    browser      varchar(50)                        null comment '浏览器类型',
+    status       tinyint                            null comment '1-成功 0-失败',
+    location     varchar(100)                       null comment 'IP地理位置',
+    created_time datetime default CURRENT_TIMESTAMP null
+)
+    collate = utf8mb4_unicode_ci;
+
+create index idx_created_time
+    on login_log (created_time);
+
+create index idx_user_id
+    on login_log (user_id);
+
+
+create table user_role
+(
+    id          bigint auto_increment
+        primary key,
+    user_id     bigint                             not null,
+    role_id     bigint                             not null,
+    create_time datetime default CURRENT_TIMESTAMP null,
+    constraint uk_user_role
+        unique (user_id, role_id),
+    constraint user_role_ibfk_1
+        foreign key (user_id) references user (id)
+            on delete cascade,
+    constraint user_role_ibfk_2
+        foreign key (role_id) references role (id)
+            on delete cascade
+)
+    collate = utf8mb4_unicode_ci;
+
+create index role_id
+    on user_role (role_id);

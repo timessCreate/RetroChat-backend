@@ -8,6 +8,8 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.com.timess.retrochat.exception.BusinessException;
+import org.com.timess.retrochat.exception.ErrorCode;
 import org.com.timess.retrochat.mapper.ChatMessageMapper;
 import org.com.timess.retrochat.model.entity.chat.ChatMessage;
 import org.com.timess.retrochat.model.dto.chat.ChatMessageDTO;
@@ -43,7 +45,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
     private ChatMessageService self;
 
     @Override
-    public boolean savePrivateMessage(ChatMessageDTO chatMessageDTO) {
+    public ChatMessage savePrivateMessage(ChatMessageDTO chatMessageDTO) {
         ChatMessage chatMessage = new ChatMessage();
         BeanUtils.copyProperties(chatMessageDTO, chatMessage);
         chatMessage.setTimestamp(LocalDateTime.now());
@@ -79,9 +81,9 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             );
         }catch (Exception e){
             log.error("消息保存失败：" + e.getMessage());
-            return false;
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, e.getMessage());
         }
-        return true;
+        return chatMessage;
     }
 
     @Override

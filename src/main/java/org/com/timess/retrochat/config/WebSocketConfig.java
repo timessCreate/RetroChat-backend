@@ -2,6 +2,7 @@ package org.com.timess.retrochat.config;
 
 import org.com.timess.retrochat.aop.AuthHandshakeInterceptor;
 import org.com.timess.retrochat.aop.CustomHandshakeHandler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -19,14 +20,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // 暴露 WebSocket 端点，支持 SockJS 回退
         registry.addEndpoint("/chat-ws")
-                // 指定自定义的 HandshakeHandler，把 attributes 中的 "user" 绑定为会话 Principal
-                .setHandshakeHandler(new CustomHandshakeHandler())
-                //允许跨域
                 .setAllowedOriginPatterns("*")
-                //添加认证拦截器
-                .addInterceptors(new AuthHandshakeInterceptor());
+                // 添加拦截器和握手处理器
+                .addInterceptors(authHandshakeInterceptor())
+                .setHandshakeHandler(customHandshakeHandler());
+    }
+
+    @Bean
+    public AuthHandshakeInterceptor authHandshakeInterceptor() {
+        return new AuthHandshakeInterceptor();
+    }
+
+    @Bean
+    public CustomHandshakeHandler customHandshakeHandler() {
+        return new CustomHandshakeHandler();
     }
 
     @Override

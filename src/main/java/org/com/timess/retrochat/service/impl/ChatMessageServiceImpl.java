@@ -3,6 +3,7 @@ package org.com.timess.retrochat.service.impl;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import com.mybatisflex.core.keygen.KeyGenerators;
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
@@ -123,4 +124,17 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
             return chatMessageDTO;
         }).toList();
     }
+
+//    @Override
+//    public Page<ChatMessageDTO> getHistoryPageChatMessage(long roomId) {
+//        QueryWrapper queryWrapper = new QueryWrapper();
+//        queryWrapper.eq("chat_room_id", roomId);
+//        this.page()
+//
+//        return list.stream().map(chatMessage -> {
+//            ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
+//            BeanUtils.copyProperties(chatMessage, chatMessageDTO);
+//            return chatMessageDTO;
+//        }).toList();
+//    }
 }

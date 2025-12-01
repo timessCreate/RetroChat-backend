@@ -103,18 +103,11 @@ public class ChatMessageController {
             // 1. 保存消息内容
             ChatMessage chatMessage = chatMessageService.savePrivateMessage(messageDTO);
 
-            // 2. 构建消息对象
-            Map<String, Object> message = new HashMap<>();
-            message.put("sender", senderName);
-            message.put("content", messageDTO.getContent());
-            message.put("timestamp", messageDTO.getTimestamp());
-            message.put("type", "PRIVATE");
-            
             // 3. 发送给接收者
             messagingTemplate.convertAndSendToUser(
                     receiverId,
                     "/queue/private",
-                    message
+                    chatMessage.getDTO()
             );
             //TODO: 添加消息确认机制
             return ResultUtils.success(chatMessage.getDTO());
@@ -137,4 +130,6 @@ public class ChatMessageController {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取历史消息失败");
         }
     }
+
+
 }

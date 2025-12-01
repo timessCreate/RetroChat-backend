@@ -8,10 +8,6 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import java.security.Principal;
 import java.util.Map;
 
-/**
- * CustomHandshakeHandler 会在握手阶段把 attributes 中的 "user"（如果存在且为 Principal）作为会话的 Principal 返回，
- * 从而让 Spring 将该 Principal 绑定到 WebSocketSession 上。
- */
 @Slf4j
 public class CustomHandshakeHandler extends DefaultHandshakeHandler {
 
@@ -22,14 +18,18 @@ public class CustomHandshakeHandler extends DefaultHandshakeHandler {
                                       WebSocketHandler wsHandler,
                                       Map<String, Object> attributes) {
         try {
+            // 从拦截器设置的 attributes 中获取 Principal
             Object user = attributes.get(ATTR_USER);
             if (user instanceof Principal) {
-                return (Principal) user;
+                Principal principal = (Principal) user;
+                log.info("HandshakeHandler 设置 Principal: {}", principal.getName());
+                return principal;
             }
         } catch (Exception ex) {
             log.warn("从 attributes 获取 Principal 失败", ex);
         }
-        // 回退到默认行为（可能是 null 或容器提供的默认 principal）
+
+        // 回退到默认行为
         return super.determineUser(request, wsHandler, attributes);
     }
 }

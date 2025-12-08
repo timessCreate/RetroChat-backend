@@ -1,13 +1,12 @@
 package org.com.timess.retrochat.service;
 
 import com.mybatisflex.core.service.IService;
+import jakarta.mail.Multipart;
 import jakarta.servlet.http.HttpServletRequest;
 import org.com.timess.retrochat.model.dto.user.UserLoginRequest;
 import org.com.timess.retrochat.model.entity.user.User;
-import org.com.timess.retrochat.model.vo.UserMessageVO;
 import org.com.timess.retrochat.model.vo.UserVO;
-
-import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *  服务层。
@@ -52,4 +51,18 @@ public interface UserService extends IService<User> {
      */
     UserVO getLoginUser(HttpServletRequest request);
 
+    /**
+     * 更新用户信息
+     * @param userVO
+     * @param request
+     * @return
+     */
+    UserVO updateProfile(UserVO userVO, HttpServletRequest request);
+
+    /**
+     * 更新用户头像
+     * @param file
+     * @return
+     */
+    String updateAvatar(MultipartFile file, HttpServletRequest request);
 }

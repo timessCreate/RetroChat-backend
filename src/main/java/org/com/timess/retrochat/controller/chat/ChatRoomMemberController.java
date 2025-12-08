@@ -1,6 +1,11 @@
 //package org.com.timess.retrochat.controller.chat;
 //
 //import com.mybatisflex.core.paginate.Page;
+//import com.qcloud.cos.COSClient;
+//import com.qcloud.cos.exception.CosClientException;
+//import com.qcloud.cos.exception.CosServiceException;
+//import com.qcloud.cos.model.Bucket;
+//import jakarta.annotation.Resource;
 //import org.com.timess.retrochat.model.entity.chat.ChatRoomMember;
 //import org.com.timess.retrochat.service.ChatRoomMemberService;
 //import org.springframework.beans.factory.annotation.Autowired;

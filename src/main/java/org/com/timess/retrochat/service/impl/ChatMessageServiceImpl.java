@@ -2,16 +2,15 @@ package org.com.timess.retrochat.service.impl;
 
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
-import com.mybatisflex.core.keygen.KeyGenerators;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.com.timess.retrochat.exception.BusinessException;
 import org.com.timess.retrochat.exception.ErrorCode;
 import org.com.timess.retrochat.mapper.ChatMessageMapper;
+import org.com.timess.retrochat.model.dto.chat.ChatPageRequest;
 import org.com.timess.retrochat.model.entity.chat.ChatMessage;
 import org.com.timess.retrochat.model.dto.chat.ChatMessageDTO;
 import org.com.timess.retrochat.model.entity.chat.ChatRoom;
@@ -24,7 +23,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 聊天消息表 服务层实现。
@@ -80,7 +78,7 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
                         }
                     }
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("消息保存失败：" + e.getMessage());
             throw new BusinessException(ErrorCode.OPERATION_ERROR, e.getMessage());
         }
@@ -93,13 +91,13 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         BeanUtils.copyProperties(chatMessageDTO, chatMessage);
         transactionTemplate.execute(
                 status -> {
-                    try{
+                    try {
                         //存储消息到库表
                         this.save(chatMessage);
                         //获取聊天室
                         ChatRoom chatRoom = chatRoomService.getById(chatMessage.getChatRoomId());
                         return "success";
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         status.setRollbackOnly();
                         throw e;
                     }
@@ -125,16 +123,24 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
         }).toList();
     }
 
-//    @Override
-//    public Page<ChatMessageDTO> getHistoryPageChatMessage(long roomId) {
-//        QueryWrapper queryWrapper = new QueryWrapper();
-//        queryWrapper.eq("chat_room_id", roomId);
-//        this.page()
-//
-//        return list.stream().map(chatMessage -> {
-//            ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
-//            BeanUtils.copyProperties(chatMessage, chatMessageDTO);
-//            return chatMessageDTO;
-//        }).toList();
-//    }
+
+    /**
+     * 分页获取聊天历史聊天记录
+     * @param request
+     * @return
+     */
+    @Override
+    public Page<ChatMessageDTO> getHistoryPageChatMessage(ChatPageRequest request) {
+        int pageIdx = request.getCurrent();
+        int pageSize = request.getPageSize();
+
+        Page<ChatMessage> page = Page.of(pageIdx, pageSize);
+ 
+        QueryWrapper wrapper = QueryWrapper.create()
+                .where(ChatMessage::getChatRoomId).eq(request.getRoomId()).orderBy(ChatMessage::getCreateTime, false);
+
+        Page<ChatMessage> resultPage = this.page(page, wrapper);
+
+        return resultPage.map(ChatMessage::getDTO);
+    }
 }

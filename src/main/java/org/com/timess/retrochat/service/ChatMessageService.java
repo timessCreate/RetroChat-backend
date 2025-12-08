@@ -1,7 +1,9 @@
 package org.com.timess.retrochat.service;
 
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.com.timess.retrochat.model.dto.chat.ChatPageRequest;
 import org.com.timess.retrochat.model.entity.chat.ChatMessage;
 import org.com.timess.retrochat.model.dto.chat.ChatMessageDTO;
 
@@ -42,5 +44,12 @@ public interface ChatMessageService extends IService<ChatMessage> {
      * @return
      */
     List<ChatMessageDTO> getHistoryChatMessage(long roomId);
+
+    /**
+     * 分页获取历史聊天记录
+     * @param request
+     * @return
+     */
+    Page<ChatMessageDTO> getHistoryPageChatMessage(ChatPageRequest request);
 }
 

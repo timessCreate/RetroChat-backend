@@ -1,5 +1,6 @@
 package org.com.timess.retrochat.controller.chat;
 
+import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import org.com.timess.retrochat.common.ResultUtils;
 import org.com.timess.retrochat.exception.BusinessException;
 import org.com.timess.retrochat.exception.ErrorCode;
 import org.com.timess.retrochat.model.dto.chat.ChatMessageDTO;
+import org.com.timess.retrochat.model.dto.chat.ChatPageRequest;
 import org.com.timess.retrochat.model.entity.chat.ChatMessage;
 import org.com.timess.retrochat.service.ChatMessageService;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -131,5 +133,13 @@ public class ChatMessageController {
         }
     }
 
-
+    @PostMapping("/chat/page-history")
+    public BaseResponse<Page<ChatMessageDTO>> getHistoryPageChatMessage(@RequestBody ChatPageRequest request) {
+        try {
+            return ResultUtils.success(chatMessageService.getHistoryPageChatMessage(request));
+        }catch (Exception e){
+            log.error("获取历史消息失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"获取历史消息失败");
+        }
+    }
 }

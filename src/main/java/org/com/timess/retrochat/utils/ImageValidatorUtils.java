@@ -1,9 +1,12 @@
 package org.com.timess.retrochat.utils;
 
-import org.springframework.web.multipart.MultipartFile;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -41,16 +44,31 @@ public class ImageValidatorUtils {
 
     /**
      * 验证是否为有效的图片文件
-     * @param file MultipartFile文件
+     * @param file File文件对象
      * @return 验证结果对象
      */
-    public static ValidationResult validateImage(MultipartFile file) {
+    public static ValidationResult validateImage(File file) {
         return validateImage(file, 0, 0, 0, 0, 0);
     }
 
     /**
+     * 验证是否为有效的图片文件
+     * @param file File文件对象
+     * @return 验证结果对象
+     */
+    public static ValidationResult validateImage(MultipartFile file) {
+        try {
+            File file1 = FileUtils.convertToFile(file);
+            return validateImage(file1, 0, 0, 0, 0, 0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
      * 验证是否为有效的图片文件（带尺寸限制）
-     * @param file MultipartFile文件
+     * @param file File文件对象
      * @param maxSizeKB 最大文件大小（KB，0表示不限制）
      * @param minWidth 最小宽度（0表示不限制）
      * @param minHeight 最小高度（0表示不限制）
@@ -58,23 +76,35 @@ public class ImageValidatorUtils {
      * @param maxHeight 最大高度（0表示不限制）
      * @return 验证结果对象
      */
-    public static ValidationResult validateImage(MultipartFile file, int maxSizeKB,
+    public static ValidationResult validateImage(File file, int maxSizeKB,
                                                  int minWidth, int minHeight,
                                                  int maxWidth, int maxHeight) {
 
         ValidationResult result = new ValidationResult();
 
         // 1. 基本检查
-        if (file == null || file.isEmpty()) {
+        if (file == null || !file.exists()) {
             result.setValid(false);
-            result.setMessage("文件不能为空");
+            result.setMessage("文件不存在");
+            return result;
+        }
+
+        if (!file.isFile()) {
+            result.setValid(false);
+            result.setMessage("不是有效的文件");
+            return result;
+        }
+
+        if (file.length() == 0) {
+            result.setValid(false);
+            result.setMessage("文件为空");
             return result;
         }
 
         // 2. 文件大小检查
         if (maxSizeKB > 0) {
             long maxSizeBytes = maxSizeKB * 1024L;
-            if (file.getSize() > maxSizeBytes) {
+            if (file.length() > maxSizeBytes) {
                 result.setValid(false);
                 result.setMessage(String.format("文件大小不能超过 %dKB", maxSizeKB));
                 return result;
@@ -82,29 +112,21 @@ public class ImageValidatorUtils {
         }
 
         // 3. 扩展名检查
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+        String filename = file.getName();
+        if (filename == null || filename.trim().isEmpty()) {
             result.setValid(false);
             result.setMessage("文件名不能为空");
             return result;
         }
 
-        String extension = FilenameUtils.getExtension(originalFilename).toLowerCase();
+        String extension = FilenameUtils.getExtension(filename).toLowerCase();
         if (!isValidExtension(extension)) {
             result.setValid(false);
             result.setMessage("不支持的文件格式，请上传图片文件");
             return result;
         }
 
-        // 4. MIME类型检查
-        String contentType = file.getContentType();
-        if (contentType == null || !isValidMimeType(contentType)) {
-            result.setValid(false);
-            result.setMessage("文件类型必须是图片");
-            return result;
-        }
-
-        // 5. 魔数检查（防止文件伪造）
+        // 4. 魔数检查（防止文件伪造）
         try {
             if (!isValidByMagicNumber(file)) {
                 result.setValid(false);
@@ -117,7 +139,7 @@ public class ImageValidatorUtils {
             return result;
         }
 
-        // 6. 图片尺寸检查
+        // 5. 图片尺寸检查
         if (minWidth > 0 || minHeight > 0 || maxWidth > 0 || maxHeight > 0) {
             try {
                 ImageDimensions dimensions = getImageDimensions(file);
@@ -149,7 +171,7 @@ public class ImageValidatorUtils {
             }
         }
 
-        // 7. 通过Java ImageIO验证
+        // 6. 通过Java ImageIO验证
         try {
             if (!isValidByImageIO(file)) {
                 result.setValid(false);
@@ -165,9 +187,11 @@ public class ImageValidatorUtils {
         result.setValid(true);
         result.setMessage("验证通过");
         result.setExtension(extension);
-        result.setMimeType(contentType);
-        result.setFileSize(file.getSize());
-        result.setFilename(originalFilename);
+        result.setFileSize(file.length());
+        result.setFilename(filename);
+
+        // 设置MIME类型
+        result.setMimeType(detectMimeType(file, extension));
 
         return result;
     }
@@ -180,26 +204,39 @@ public class ImageValidatorUtils {
     }
 
     /**
-     * 检查MIME类型是否有效
+     * 检测MIME类型
      */
-    private static boolean isValidMimeType(String mimeType) {
-        if (mimeType == null) return false;
-
-        // 检查完整MIME类型
-        if (IMAGE_MIME_PREFIXES.contains(mimeType.toLowerCase())) {
-            return true;
+    private static String detectMimeType(File file, String extension) {
+        // 根据扩展名猜测MIME类型
+        switch (extension.toLowerCase()) {
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "gif":
+                return "image/gif";
+            case "bmp":
+                return "image/bmp";
+            case "webp":
+                return "image/webp";
+            case "ico":
+                return "image/x-icon";
+            case "tiff":
+                return "image/tiff";
+            case "svg":
+                return "image/svg+xml";
+            default:
+                return "application/octet-stream";
         }
-
-        // 检查是否为image/开头的类型
-        return mimeType.toLowerCase().startsWith("image/");
     }
 
     /**
      * 通过魔数验证图片
      */
-    private static boolean isValidByMagicNumber(MultipartFile file) throws IOException {
+    private static boolean isValidByMagicNumber(File file) throws IOException {
         byte[] fileHeader = new byte[8]; // 读取前8个字节足够判断大部分图片格式
-        try (InputStream inputStream = file.getInputStream()) {
+        try (InputStream inputStream = new FileInputStream(file)) {
             int read = inputStream.read(fileHeader, 0, 8);
             if (read < 2) return false; // 至少需要2个字节判断BMP
 
@@ -223,8 +260,8 @@ public class ImageValidatorUtils {
     /**
      * 通过ImageIO验证图片
      */
-    private static boolean isValidByImageIO(MultipartFile file) throws IOException {
-        try (InputStream inputStream = file.getInputStream()) {
+    private static boolean isValidByImageIO(File file) throws IOException {
+        try (InputStream inputStream = new FileInputStream(file)) {
             BufferedImage image = ImageIO.read(inputStream);
             return image != null;
         }
@@ -233,14 +270,66 @@ public class ImageValidatorUtils {
     /**
      * 获取图片尺寸
      */
-    private static ImageDimensions getImageDimensions(MultipartFile file) throws IOException {
-        try (InputStream inputStream = file.getInputStream()) {
+    private static ImageDimensions getImageDimensions(File file) throws IOException {
+        try (InputStream inputStream = new FileInputStream(file)) {
             BufferedImage image = ImageIO.read(inputStream);
             if (image != null) {
                 return new ImageDimensions(image.getWidth(), image.getHeight());
             }
         }
         return null;
+    }
+
+    /**
+     * 简化的验证方法 - 只验证是否为图片
+     */
+    public static boolean isImage(File file) {
+        if (file == null || !file.exists() || !file.isFile()) {
+            return false;
+        }
+
+        // 检查扩展名
+        String filename = file.getName();
+        String extension = FilenameUtils.getExtension(filename).toLowerCase();
+        if (!isValidExtension(extension)) {
+            return false;
+        }
+
+        // 通过ImageIO验证
+        try (InputStream inputStream = new FileInputStream(file)) {
+            BufferedImage image = ImageIO.read(inputStream);
+            return image != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 获取图片详细信息
+     */
+    public static ImageInfo getImageInfo(File file) throws IOException {
+        if (file == null || !file.exists() || !file.isFile()) {
+            throw new IllegalArgumentException("文件不存在或无效");
+        }
+
+        ImageInfo info = new ImageInfo();
+        info.setFilename(file.getName());
+        info.setFileSize(file.length());
+        info.setExtension(FilenameUtils.getExtension(file.getName()).toLowerCase());
+        info.setFilePath(file.getAbsolutePath());
+
+        try (InputStream inputStream = new FileInputStream(file)) {
+            BufferedImage image = ImageIO.read(inputStream);
+            if (image != null) {
+                info.setWidth(image.getWidth());
+                info.setHeight(image.getHeight());
+                info.setValid(true);
+            } else {
+                info.setValid(false);
+            }
+        }
+
+        return info;
     }
 
     /**
@@ -278,6 +367,19 @@ public class ImageValidatorUtils {
 
         public ImageDimensions getDimensions() { return dimensions; }
         public void setDimensions(ImageDimensions dimensions) { this.dimensions = dimensions; }
+
+        @Override
+        public String toString() {
+            return "ValidationResult{" +
+                    "valid=" + valid +
+                    ", message='" + message + '\'' +
+                    ", filename='" + filename + '\'' +
+                    ", extension='" + extension + '\'' +
+                    ", mimeType='" + mimeType + '\'' +
+                    ", fileSize=" + fileSize +
+                    ", dimensions=" + (dimensions != null ? dimensions.toString() : "null") +
+                    '}';
+        }
     }
 
     /**
@@ -298,6 +400,54 @@ public class ImageValidatorUtils {
         @Override
         public String toString() {
             return width + "x" + height;
+        }
+    }
+
+    /**
+     * 图片信息类
+     */
+    public static class ImageInfo {
+        private boolean valid;
+        private String filename;
+        private String filePath;
+        private String extension;
+        private long fileSize;
+        private int width;
+        private int height;
+
+        // getter、setter
+        public boolean isValid() { return valid; }
+        public void setValid(boolean valid) { this.valid = valid; }
+
+        public String getFilename() { return filename; }
+        public void setFilename(String filename) { this.filename = filename; }
+
+        public String getFilePath() { return filePath; }
+        public void setFilePath(String filePath) { this.filePath = filePath; }
+
+        public String getExtension() { return extension; }
+        public void setExtension(String extension) { this.extension = extension; }
+
+        public long getFileSize() { return fileSize; }
+        public void setFileSize(long fileSize) { this.fileSize = fileSize; }
+
+        public int getWidth() { return width; }
+        public void setWidth(int width) { this.width = width; }
+
+        public int getHeight() { return height; }
+        public void setHeight(int height) { this.height = height; }
+
+        @Override
+        public String toString() {
+            return "ImageInfo{" +
+                    "valid=" + valid +
+                    ", filename='" + filename + '\'' +
+                    ", filePath='" + filePath + '\'' +
+                    ", extension='" + extension + '\'' +
+                    ", fileSize=" + fileSize +
+                    ", width=" + width +
+                    ", height=" + height +
+                    '}';
         }
     }
 }

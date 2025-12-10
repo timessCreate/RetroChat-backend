@@ -23,6 +23,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 聊天消息表 服务层实现。
@@ -140,7 +142,8 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
                 .where(ChatMessage::getChatRoomId).eq(request.getRoomId()).orderBy(ChatMessage::getCreateTime, false);
 
         Page<ChatMessage> resultPage = this.page(page, wrapper);
-
+        List<ChatMessage> records = resultPage.getRecords();
+        resultPage.setRecords(records.reversed());
         return resultPage.map(ChatMessage::getDTO);
     }
 }

@@ -27,7 +27,16 @@ public class CorsConfig implements WebMvcConfigurer {
                         "/user/register",
                         "/user/verifyCode",
                         "/swagger-ui/**",
-                        "/v3/api-docs/**"
+                        "/v3/api-docs/**",
+                        // Knife4j 相关路径
+                        "/swagger-ui.html",
+                        "/swagger-resources/**",
+                        "/v2/api-docs",
+                        "/v3/api-docs",
+                        "/v3/api-docs/**",
+                        "/webjars/**",
+                        "/doc.html",
+                        "/favicon.ico"
                 );
     }
 

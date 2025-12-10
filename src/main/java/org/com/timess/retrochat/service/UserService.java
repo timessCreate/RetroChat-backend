@@ -64,5 +64,5 @@ public interface UserService extends IService<User> {
      * @param file
      * @return
      */
-    String updateAvatar(MultipartFile file, HttpServletRequest request);
+    String updateAvatar(MultipartFile file, String pictureUrl, HttpServletRequest request);
 }

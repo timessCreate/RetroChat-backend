@@ -535,14 +535,13 @@ public class CosManager {
             throw new IllegalArgumentException("文件大小不能超过 " + cosProperties.getUpload().getMaxSize());
         }
 
-        //TODO: bug:不支持svg
-//        // 检查文件扩展名
-//        String extension = getFileExtension(file.getOriginalFilename()).toLowerCase();
-//        Set<String> allowedExtensions = cosProperties.getUpload().getAllowedExtensionSet();
-//
-//        if (!allowedExtensions.isEmpty() && !allowedExtensions.contains(extension)) {
-//            throw new IllegalArgumentException("不支持的文件类型: " + extension);
-//        }
+        // 检查文件扩展名
+        String extension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+        Set<String> allowedExtensions = cosProperties.getUpload().getAllowedExtensionSet();
+
+        if (!allowedExtensions.isEmpty() && !allowedExtensions.contains(extension)) {
+            throw new IllegalArgumentException("不支持的文件类型: " + extension);
+        }
     }
 
     /**

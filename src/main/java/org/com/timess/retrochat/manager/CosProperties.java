@@ -36,7 +36,7 @@ public class CosProperties {
         private String maxSize = "10MB";
 
         @JsonProperty("allowed-extensions")
-        private String allowedExtensions = "jpg,jpeg,png,gif,bmp,webp,pdf,doc,docx,xls,xlsx,txt";
+        private String allowedExtensions = "jpg,jpeg,png,gif,bmp,webp,pdf,doc,docx,xls,xlsx,txt,svg";
 
         @JsonProperty("image-extensions")
         private String imageExtensions = "jpg,jpeg,png,gif,bmp,webp";

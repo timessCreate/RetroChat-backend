@@ -21,10 +21,7 @@ import org.com.timess.retrochat.model.vo.UserMessageVO;
 import org.com.timess.retrochat.model.vo.UserVO;
 import org.com.timess.retrochat.service.TokenBlacklistService;
 import org.com.timess.retrochat.service.UserService;
-import org.com.timess.retrochat.utils.CommonUtils;
-import org.com.timess.retrochat.utils.EmailApi;
-import org.com.timess.retrochat.utils.ImageValidatorUtils;
-import org.com.timess.retrochat.utils.JwtUtil;
+import org.com.timess.retrochat.utils.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -136,7 +133,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
      */
     @Override
     public UserVO getLoginUser(HttpServletRequest request) {
-        Long userId = Long.valueOf((String) request.getAttribute("userId"));
+        Long userId = (Long) request.getAttribute("userId");
         User user = this.getById(userId);
         ThrowUtils.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录或已注销");
         UserVO loginUserVO = new UserVO();
@@ -172,11 +169,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
      * @return
      */
     @Override
-    public String updateAvatar(MultipartFile file, HttpServletRequest request) {
+    public String updateAvatar(MultipartFile file, String pictureUrl, HttpServletRequest request) {
         UserVO loginUser = this.getLoginUser(request);
-        ImageValidatorUtils.ValidationResult validationResult = ImageValidatorUtils.validateImage(file);
-        if(!validationResult.isValid()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片类型不支持");
+        if(!file.isEmpty()){
+            ImageValidatorUtils.ValidationResult validationResult = ImageValidatorUtils.validateImage(file);
+            ThrowUtils.throwIf(!validationResult.isValid(), ErrorCode.PARAMS_ERROR, "图片类型不支持");
+        }else{
+            ImageDownloadValidator.DownloadResult downloadResult = ImageDownloadValidator.downloadImage(pictureUrl);
+            ThrowUtils.throwIf(!downloadResult.isSuccess(), ErrorCode.PARAMS_ERROR, "从指定url下载图片失败");
+            file = downloadResult.getMultipartFile();
         }
         CosUploadResult cosUploadResult;
         try {
@@ -189,15 +190,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
             User updateUserVO = new User();
             BeanUtils.copyProperties(loginUser, updateUserVO);
             this.updateById(updateUserVO);
+            //TODO：删除原来的头像
+
         }catch (Exception e){
             //删除上传的文件
             cosManager.deleteFile(cosUploadResult.getFileUrl());
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
-        //TODO: 添加从网络上下载图片的逻辑
-
         return cosUploadResult.getFileUrl();
     }
-
-
 }

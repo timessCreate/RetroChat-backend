@@ -9,6 +9,11 @@ spring:
   profiles:
     active: local
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 # 开启MyBatis SQL日志（推荐）
 logging:
   level:

@@ -96,6 +96,12 @@ public class UserController {
     }
 
 
+    /**
+     * 更新个人信息
+     * @param userVO
+     * @param request
+     * @return
+     */
     @PostMapping("/profile/update")
     public BaseResponse<UserVO> updateProfile(@RequestBody UserVO userVO, HttpServletRequest request){
         try{
@@ -107,16 +113,20 @@ public class UserController {
         }
     }
 
+    /**
+     * 更新头像
+     * @param file
+     * @param request
+     * @return
+     */
     @PostMapping("/avatar/update")
-    public BaseResponse<String> updateAvatar(MultipartFile file, HttpServletRequest request){
+    public BaseResponse<String> updateAvatar(MultipartFile file, String pictureUrl, HttpServletRequest request){
         try{
-            String result = userService.updateAvatar(file, request);
+            String result = userService.updateAvatar(file, pictureUrl,request);
             return ResultUtils.success(result);
         }catch (Exception e){
             log.error("修改用户头像失败：" + e.getMessage());
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "修改用户头像失败，请联系管理员");
         }
     }
-
-
 }

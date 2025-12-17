@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 
 @Getter
-public enum PictureReviewStatusEnum {
+public enum ReviewStatusEnum {
     REVIEWING("待审核", 0),
 
     PASS("通过", 1),
@@ -19,7 +19,7 @@ public enum PictureReviewStatusEnum {
     private final String text;
     private final int value;
 
-    PictureReviewStatusEnum(String text, int value) {
+    ReviewStatusEnum(String text, int value) {
         this.text = text;
         this.value = value;
     }
@@ -29,13 +29,13 @@ public enum PictureReviewStatusEnum {
      * @param value
      * @return
      */
-    public static PictureReviewStatusEnum getEnumByValue(Integer value){
+    public static ReviewStatusEnum getEnumByValue(Integer value){
         if(ObjUtil.isEmpty(value)){
             return null;
         }
-        for (PictureReviewStatusEnum pictureReviewStatusEnum : PictureReviewStatusEnum.values()) {
-            if(pictureReviewStatusEnum.value == value){
-                return pictureReviewStatusEnum;
+        for (ReviewStatusEnum reviewStatusEnum : ReviewStatusEnum.values()) {
+            if(reviewStatusEnum.value == value){
+                return reviewStatusEnum;
             }
         }
         return null;

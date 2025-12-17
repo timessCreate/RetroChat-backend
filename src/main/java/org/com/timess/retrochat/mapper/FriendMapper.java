@@ -4,7 +4,7 @@ import com.mybatisflex.core.BaseMapper;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.com.timess.retrochat.model.entity.user.Friend;
 import org.com.timess.retrochat.model.vo.UserMessageVO;
-import org.com.timess.retrochat.provider.user.FriendProvider;
+import org.com.timess.retrochat.provider.friend.FriendProvider;
 
 import java.util.List;
 

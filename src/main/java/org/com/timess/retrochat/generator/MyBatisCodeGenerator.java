@@ -12,7 +12,7 @@ public class MyBatisCodeGenerator {
 
     // 需要生成的表名
 //    private static final String[] TABLE_NAMES = {"chat_room","chat_room_member", "chat_message"};
-    private static final String[] TABLE_NAMES = {"friend"};
+    private static final String[] TABLE_NAMES = {"friend_requests"};
 
     public static void main(String[] args) {
         // 获取数据源信息

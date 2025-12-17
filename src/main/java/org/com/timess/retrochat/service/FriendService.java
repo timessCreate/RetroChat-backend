@@ -20,4 +20,11 @@ public interface FriendService extends IService<Friend> {
      * @return
      */
     List<UserMessageVO> getFriendList(HttpServletRequest request);
+
+    /**
+     * 添加好友
+     * @param fromUserId
+     * @param toUserId
+     */
+    void addFriend(long fromUserId, long toUserId);
 }

@@ -1,4 +1,4 @@
-package org.com.timess.retrochat.provider.user;
+package org.com.timess.retrochat.provider.friend;
 
 /**
  * @author eternal

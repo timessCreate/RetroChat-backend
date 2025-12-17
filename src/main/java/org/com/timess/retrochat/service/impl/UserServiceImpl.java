@@ -109,7 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
                 !currentUser.getPassword().equals(CommonUtils.getEncryptPassword(userLoginRequest.getPassword())),
                 ErrorCode.PASSWORD_ERROR, "密码错误");
         //登录成功，生成token
-        return JwtUtil.generateToken(currentUser.getUsername(), currentUser.getId());
+        return JwtUtil.generateToken(currentUser.getUsername(), currentUser.getId(),currentUser.getUserAvatar());
     }
 
     @Override

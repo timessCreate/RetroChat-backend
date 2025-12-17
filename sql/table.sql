@@ -325,3 +325,26 @@ create table user_role
 
 create index role_id
     on user_role (role_id);
+
+
+
+-- 简化版好友申请表
+CREATE TABLE friend_requests (
+                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                 from_user_id BIGINT NOT NULL COMMENT '发起者ID',
+                                 to_user_id BIGINT NOT NULL COMMENT '接收者ID',
+                                 request_message VARCHAR(200) DEFAULT '' COMMENT '验证消息',
+                                 status TINYINT NOT NULL DEFAULT 0 COMMENT '0-待处理 1-已同意 2-已拒绝',
+                                 is_read BOOLEAN DEFAULT FALSE COMMENT '是否已读',
+                                 send_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+                                 process_time DATETIME COMMENT '处理时间',
+
+    -- 基础索引
+                                 INDEX idx_from_user (from_user_id),
+                                 INDEX idx_to_user_status (to_user_id, status),
+                                 UNIQUE KEY uk_pending (from_user_id, to_user_id, status),
+
+    -- 外键
+                                 FOREIGN KEY (from_user_id) REFERENCES user(id) ON DELETE CASCADE,
+                                 FOREIGN KEY (to_user_id) REFERENCES user(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='好友申请表';

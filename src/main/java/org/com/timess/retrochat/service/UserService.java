@@ -8,6 +8,8 @@ import org.com.timess.retrochat.model.entity.user.User;
 import org.com.timess.retrochat.model.vo.UserVO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  *  服务层。
  *
@@ -44,6 +46,13 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean existsUser(long id, String username);
+
+    /**
+     * 获取用户列表
+     * @param username
+     * @return
+     */
+    List<UserVO> getUserVOList(String username);
 
     /**
      * 获取登录用户信息

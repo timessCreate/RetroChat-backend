@@ -32,6 +32,9 @@ public class User implements Serializable {
     @Id(keyType = KeyType.Generator, value = "snowFlakeId")
     private Long id;
 
+    /**
+     * 用户名
+     */
     private String username;
 
     /**
@@ -39,8 +42,14 @@ public class User implements Serializable {
      */
     private String password;
 
+    /**
+     * 用户昵称
+     */
     private String email;
 
+    /**
+     * 手机号码
+     */
     private String phone;
 
     /**

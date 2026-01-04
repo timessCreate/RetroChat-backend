@@ -2,6 +2,8 @@ package org.com.timess.retrochat.config;
 
 import org.com.timess.retrochat.aop.AuthHandshakeInterceptor;
 import org.com.timess.retrochat.aop.CustomHandshakeHandler;
+import org.com.timess.retrochat.aop.VideoHandshakeHandler;
+import org.com.timess.retrochat.aop.VideoHandshakeInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -20,11 +22,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 聊天WebSocket端点
         registry.addEndpoint("/chat-ws")
                 .setAllowedOriginPatterns("*")
-                // 添加拦截器和握手处理器
                 .addInterceptors(authHandshakeInterceptor())
                 .setHandshakeHandler(customHandshakeHandler());
+
+        // 视频通话WebSocket端点 - 使用不同的握手处理器和拦截器
+        registry.addEndpoint("/video-ws")
+                .setAllowedOriginPatterns("*")
+                // 视频通话需要更严格的认证，可以使用相同的拦截器或专门的视频拦截器
+                .addInterceptors(videoHandshakeInterceptor())
+                .setHandshakeHandler(videoHandshakeHandler());
+
     }
 
     @Bean
@@ -33,26 +43,37 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Bean
+    public VideoHandshakeInterceptor videoHandshakeInterceptor() {
+        return new VideoHandshakeInterceptor();
+    }
+
+    @Bean
     public CustomHandshakeHandler customHandshakeHandler() {
         return new CustomHandshakeHandler();
     }
 
+    @Bean
+    public VideoHandshakeHandler videoHandshakeHandler() {
+        return new VideoHandshakeHandler();
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // 启用简单内存消息代理（生产环境建议用 RabbitMQ 或 Kafka） 对应@SendTo路径
-        registry.enableSimpleBroker("/topic", "/queue");
-        // 客户端发送消息的前缀 对应 @MessageMapping 路径
+        // 启用简单内存消息代理
+        // /video 前缀用于视频相关主题
+        registry.enableSimpleBroker("/topic", "/queue", "/user", "/video");
+        // 客户端发送消息的前缀
         registry.setApplicationDestinationPrefixes("/app");
-        // 点对点消息前缀（默认 /user） -->
+        // 点对点消息前缀
         registry.setUserDestinationPrefix("/user");
     }
-    
-    // 配置消息缓冲区大小
+
+    // 配置消息缓冲区大小 - 视频需要更大的缓冲区
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
-        // 128KB
-        registry.setMessageSizeLimit(128 * 1024);
-        // 512KB
-        registry.setSendBufferSizeLimit(512 * 1024);
+        // 视频通话需要更大的缓冲区
+        registry.setMessageSizeLimit(512 * 1024); // 512KB
+        registry.setSendBufferSizeLimit(1024 * 1024); // 1MB
+        registry.setTimeToFirstMessage(30000); // 设置首次消息超时时间（毫秒）
     }
 }

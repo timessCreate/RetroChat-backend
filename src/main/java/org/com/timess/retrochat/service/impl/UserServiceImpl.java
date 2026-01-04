@@ -127,6 +127,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
     }
 
     /**
+     * 返回符合模糊查询的用户列表
+     * @param username 待模糊查询的用户名
+     * @return
+     */
+    @Override
+    public List<UserVO> getUserVOList(String username) {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        queryWrapper.like("username", username);
+        List<User> userList = this.list(queryWrapper);
+        return userList.stream().map(user -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            return userVO;
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * 获取当前登录用户
      * @param request
      * @return
@@ -161,6 +178,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "更新用户信息失败，请联系联系管理员");
         }
     }
+
+
 
     /**
      * 更新用户头像

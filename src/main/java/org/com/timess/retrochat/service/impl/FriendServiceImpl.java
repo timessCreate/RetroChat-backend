@@ -35,6 +35,11 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend>  implem
         return friendMapper.getFriendList(userId);
     }
 
+    /**
+     * 添加好友
+     * @param fromUserId
+     * @param toUserId
+     */
     @Override
     public void addFriend(long fromUserId, long toUserId) {
         Friend friend = new Friend();
